@@ -7,7 +7,8 @@
     org_unit: "CA"
   register: ca_certs
 
-- set_fact:
+- name: Setting 'ca' fact...
+  set_fact:
     ca: "{{ ca_certs.stdout | from_json }}"
 
 - name: Encrypt CA key
@@ -16,12 +17,13 @@
     stdin: "{{ ca.key }}"
   register: encrypt_string
 
-- set_fact:
+- name: Setting 'encrypted_key' fact...
+  set_fact:
     encrypted_key: "{{ encrypt_string.stdout | trim_encrypt_string }}"
 
-- set_fact:
+- name: Setting 'ca' fact...
+  set_fact:
     ca: "{{ { 'cert': ca.cert, 'key': (encrypted_key | default(ca.key)) } }}"
-    cert_update: true
 
 - name: Save cert information to ca.yaml
   template:
