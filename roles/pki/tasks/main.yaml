@@ -1,0 +1,111 @@
+---
+
+##
+# Setup local files and directories
+##
+
+- name: create local 'certs' directory
+  file:
+    path: "{{ certs_dir }}"
+    state: directory
+
+- name: create CA config file
+  copy:
+    content: "{{ ca_config | to_nice_json(indent=2) }}"
+    dest: "{{ cert_files['ca_config'] }}"
+
+- name: ensure yaml files for CA and client certs exist
+  copy:
+    content: ""
+    dest: "{{ item }}"
+    force: no
+  loop:
+    - "{{ cert_files['ca'] }}"
+    - "{{ cert_files['clients'] }}"
+
+##
+# Load variables
+##
+
+- name: load CA certificate
+  include_vars:
+    file: "{{ cert_files['ca'] }}"
+    name: ca
+
+- name: load client certificates
+  include_vars:
+    file: "{{ cert_files['clients'] }}"
+    name: client_certs
+
+- name:
+  debug:
+    msg: "{{ hostvars[(groups['workers'] | first)] }}"
+
+
+# dynamically update list of worker certificates based number of workers
+- name: Adding worker to client list
+  set_fact:
+    clients: >
+      {{ clients |
+        combine({
+          item: {
+            'hostnames': [ item ] + hostvars[item]["ansible_all_ipv4_addresses"],
+            'attributes': {
+              'cn': 'system:node:' + item,
+              'org': 'system:nodes'
+            }
+          }
+        })
+      }}
+  loop: "{{ groups['workers'] }}"
+
+##
+# Generate CA and client certificates
+##
+
+- name: Generate CA cert and key
+  include_tasks: ca.yaml
+  when: >
+    ca | length <= 0 or
+    'key' not in ca or
+    'cert' not in ca
+
+- name: test
+  debug:
+    msg: "{{ k8s_hostnames + [ '127.0.0.1' ] }}"
+
+- name: Generate client certificates and keys
+  include_tasks: client.yaml
+  vars:
+    name: "{{ item.key }}"
+    attributes: "{{ item.value['attributes'] }}"
+    hostnames: "{{ item.value['hostnames'] | default(omit) }}"
+  when: >
+    item.key not in client_certs or
+    'key' not in client_certs[item.key] or
+    'cert' not in client_certs[item.key]
+  loop: "{{ clients | dict2items }}"
+
+# - name: debug 3
+#   debug:
+#     msg: "{{ groups['workers'] }}"
+
+# - name: Save cert information to cert.yaml
+#   template:
+#     src: certs.yaml.j2
+#     dest: "{{ cert_yaml }}"
+#   when: cert_update
+
+# - name: testeroonie
+#   command: echo $CSR
+#   vars:
+#     org_unit: CA
+#   environment:
+#     CSR: "{{ csr }}"
+#   register: testeroonie
+
+# - name: output
+#   debug:
+#     msg: "{{ testeroonie.stdout }}"
+
+

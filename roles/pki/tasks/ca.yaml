@@ -1,0 +1,29 @@
+---
+- name: Generate CA certificates
+  command:
+    cmd: "cfssl gencert -initca -config=\"{{ cert_files['ca_config'] }}\" -"
+    stdin: "{{ csr | tojson | string }}"
+  vars:
+    org_unit: "CA"
+  register: ca_certs
+
+- set_fact:
+    ca: "{{ ca_certs.stdout | from_json }}"
+
+- name: Encrypt CA key
+  command:
+    cmd: "ansible-vault encrypt_string --stdin-name 'key'"
+    stdin: "{{ ca.key }}"
+  register: encrypt_string
+
+- set_fact:
+    encrypted_key: "{{ encrypt_string.stdout | trim_encrypt_string }}"
+
+- set_fact:
+    ca: "{{ { 'cert': ca.cert, 'key': (encrypted_key | default(ca.key)) } }}"
+    cert_update: true
+
+- name: Save cert information to ca.yaml
+  template:
+    src: ca.yaml.j2
+    dest: "{{ cert_files['ca'] }}"

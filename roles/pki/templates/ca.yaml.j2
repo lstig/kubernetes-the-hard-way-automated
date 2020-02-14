@@ -1,0 +1,6 @@
+---
+{% for cert, content in ca.items() %}
+{% set tag = '!vault |' if (content | is_vault_string) else '|' %}
+{{ cert }}: {{ tag }}
+  {{ content | trim | indent(width=2) }}
+{% endfor %}
