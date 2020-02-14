@@ -1,3 +1,26 @@
 ---
 public_address_cidr: "172.16.0.0/24"
 private_address_cidr: "10.240.0.0/24"
+k8s_hostnames:
+  - kubernetes
+  - kubernetes.default
+  - kubernetes.default.svc
+  - kubernetes.default.svc.cluster
+  - kubernetes.svc.cluster.local
+clients:
+  admin:
+    cn: admin
+    org: system:masters
+  kube-controller-manager:
+    cn: system:kube-controller-manager
+    org: system:kube-controller-manager
+  kube-proxy:
+    cn: system:kube-proxy
+    org: system:node-proxier
+  kube-scheduler:
+    cn: system:kube-scheduler
+    org: system:kube-scheduler
+  service-account:
+    cn: service-accounts
+  kubernetes:
+    hostnames: "{{ k8s_hostnames }}"

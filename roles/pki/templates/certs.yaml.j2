@@ -1,0 +1,9 @@
+---
+{% for client, certs in clients.items() %}
+{{ client }}:
+{% for cert, content in certs.items() %}
+{% set tag = '!vault |' if (content | is_vault_string) else '|' %}
+  {{ cert }}: {{ tag }}
+    {{ content | trim | indent(width=4) }}
+{% endfor %}
+{% endfor %}
