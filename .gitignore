@@ -1,6 +1,11 @@
 # OS-specific
 .DS_Store
 
+# Project Specific
+certs/*
+!certs/.gitkeep
+
+
 # Vagrant stuff
 acceptance_config.yml
 boxes/*
