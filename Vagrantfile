@@ -1,70 +1,70 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-# All Vagrant configuration is done below. The "2" in Vagrant.configure
-# configures the configuration version (we support older styles for
-# backwards compatibility). Please don't change it unless you know what
-# you're doing.
 Vagrant.configure("2") do |config|
-  # The most common configuration options are documented and commented below.
-  # For a complete reference, please see the online documentation at
-  # https://docs.vagrantup.com.
-
-  # Every Vagrant development environment requires a box. You can search for
-  # boxes at https://vagrantcloud.com/search.
   config.vm.box = "ubuntu/bionic64"
 
-  # Disable automatic box update checking. If you disable this, then
-  # boxes will only be checked for updates when the user runs
-  # `vagrant box outdated`. This is not recommended.
-  # config.vm.box_check_update = false
+  config.vm.provider "virtualbox" do |vb|
+    # This moves an annoying log file that gets created when the VMs
+    # are provisioned. I tried setting 'uartmode1' to 'disconnected' but
+    # that caused the VMs to boot reeeaaallly slow.
+    vb.customize [ "modifyvm", :id, "--uartmode1", "file", "/dev/null" ]
+  end
 
-  # Create a forwarded port mapping which allows access to a specific port
-  # within the machine from a port on the host machine. In the example below,
-  # accessing "localhost:8080" will access port 80 on the guest machine.
-  # NOTE: This will enable public access to the opened port
-  # config.vm.network "forwarded_port", guest: 80, host: 8080
+  LB_MEM = 256
+  WORKER_MEM = 640
+  CONTROLLER_MEM = 640
 
-  # Create a forwarded port mapping which allows access to a specific port
-  # within the machine from a port on the host machine and only allow access
-  # via 127.0.0.1 to disable public access
-  # config.vm.network "forwarded_port", guest: 80, host: 8080, host_ip: "127.0.0.1"
+  CONTORLLERS = 3
+  WORKERS = 3
 
-  # Create a private network, which allows host-only access to the machine
-  # using a specific IP.
-  # config.vm.network "private_network", ip: "192.168.33.10"
+  ANSIBLE_PLAYBOOK = "vagrant.yaml"
+  ANSIBLE_GROUPS = {
+    "controllers" => [ "controller-[0:#{CONTORLLERS - 1}]" ],
+    "workers" => [ "worker-[0:#{WORKERS - 1}]" ],
+    "k8s:children" => [ "controllers", "workers" ],
+    "loadbalancers" => [ "lb-0" ]
+  }
 
-  # Create a public network, which generally matched to bridged network.
-  # Bridged networks make the machine appear as another physical device on
-  # your network.
-  # config.vm.network "public_network"
+  config.vm.define "lb-0" do |this|
+    this.vm.hostname = "lb-0"
+    this.vm.network "private_network", ip: "10.240.0.2"
+    this.vm.network "private_network", ip: "172.16.0.2"
 
-  # Share an additional folder to the guest VM. The first argument is
-  # the path on the host to the actual folder. The second argument is
-  # the path on the guest to mount the folder. And the optional third
-  # argument is a set of non-required options.
-  # config.vm.synced_folder "../data", "/vagrant_data"
+    this.vm.provider "virtualbox" do |vb|
+      vb.memory = LB_MEM
+    end
+  end
 
-  # Provider-specific configuration so you can fine-tune various
-  # backing providers for Vagrant. These expose provider-specific options.
-  # Example for VirtualBox:
-  #
-  # config.vm.provider "virtualbox" do |vb|
-  #   # Display the VirtualBox GUI when booting the machine
-  #   vb.gui = true
-  #
-  #   # Customize the amount of memory on the VM:
-  #   vb.memory = "1024"
-  # end
-  #
-  # View the documentation for the provider you are using for more
-  # information on available options.
+  (0...CONTORLLERS).each do |n|
+    config.vm.define "controller-#{n}" do |this|
+      this.vm.hostname = "controller-#{n}"
+      this.vm.network "private_network", ip: "10.240.0.1#{n}"
+      this.vm.network "private_network", ip: "172.16.0.1#{n}"
 
-  # Enable provisioning with a shell script. Additional provisioners such as
-  # Ansible, Chef, Docker, Puppet and Salt are also available. Please see the
-  # documentation for more information about their specific syntax and use.
-  # config.vm.provision "shell", inline: <<-SHELL
-  #   apt-get update
-  #   apt-get install -y apache2
-  # SHELL
+      this.vm.provider "virtualbox" do |vb|
+        vb.memory = CONTROLLER_MEM
+      end
+    end
+  end
+
+  (0...WORKERS).each do |n|
+    config.vm.define "worker-#{n}" do |this|
+      this.vm.hostname = "worker-#{n}"
+      this.vm.network "private_network", ip: "10.240.0.2#{n}"
+      this.vm.network "private_network", ip: "172.16.0.2#{n}"
+
+      this.vm.provider "virtualbox" do |vb|
+        vb.memory = WORKER_MEM
+      end
+
+      if n + 1 == WORKERS
+        this.vm.provision "ansible" do |ansible|
+          ansible.limit = "all,localhost"
+          ansible.playbook = ANSIBLE_PLAYBOOK
+          ansible.groups = ANSIBLE_GROUPS
+        end
+      end
+    end
+  end
 end
