@@ -6,26 +6,32 @@
   vars:
     org_unit: "CA"
   register: ca_certs
+  no_log: true
 
-- name: Setting 'ca' fact...
+- name: Setting 'ca' fact
   set_fact:
     ca: "{{ ca_certs.stdout | from_json }}"
+  no_log: true
 
 - name: Encrypt CA key
   command:
     cmd: "ansible-vault encrypt_string --stdin-name 'key'"
     stdin: "{{ ca.key }}"
   register: encrypt_string
+  when: encrypt_ca_key
+  no_log: true
 
-- name: Setting 'encrypted_key' fact...
+- name: Setting 'encrypted_key' fact
   set_fact:
     encrypted_key: "{{ encrypt_string.stdout | trim_encrypt_string }}"
+  when: encrypt_ca_key
+  no_log: true
 
-- name: Setting 'ca' fact...
+- name: Setting 'ca' fact
   set_fact:
     ca: "{{ { 'cert': ca.cert, 'key': (encrypted_key | default(ca.key)) } }}"
+  no_log: true
 
-- name: Save cert information to ca.yaml
-  template:
-    src: ca.yaml.j2
-    dest: "{{ cert_files['ca'] }}"
+- name: Setting 'ca_update' to 'true'
+  set_fact:
+    ca_update: true
