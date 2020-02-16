@@ -7,20 +7,37 @@ k8s_hostnames:
   - kubernetes.default.svc
   - kubernetes.default.svc.cluster
   - kubernetes.svc.cluster.local
+loadbalancer_ips: "{{ groups['loadbalancers'] | map('extract', hostvars, 'ansible_all_ipv4_addresses') | ipaddr(public_address_cidr) | list | flatten | unique }}"
+controller_ips: "{{ groups['controllers'] | map('extract', hostvars, 'ansible_all_ipv4_addresses') | ipaddr(private_address_cidr) | list | flatten | unique }}"
 clients:
   admin:
-    cn: admin
-    org: system:masters
+    attributes:
+      cn: admin
+      org: system:masters
   kube-controller-manager:
-    cn: system:kube-controller-manager
-    org: system:kube-controller-manager
+    attributes:
+      cn: system:kube-controller-manager
+      org: system:kube-controller-manager
   kube-proxy:
-    cn: system:kube-proxy
-    org: system:node-proxier
+    attributes:
+      cn: system:kube-proxy
+      org: system:node-proxier
   kube-scheduler:
-    cn: system:kube-scheduler
-    org: system:kube-scheduler
+    attributes:
+      cn: system:kube-scheduler
+      org: system:kube-scheduler
   service-account:
-    cn: service-accounts
+    attributes:
+      cn: service-accounts
+      org: Kubernetes
   kubernetes:
-    hostnames: "{{ k8s_hostnames }}"
+    attributes:
+      cn: kubernetes
+      org: Kubernetes
+    hostnames: >
+      {{
+        [ '127.0.0.1', '10.32.0.1' ] +
+        k8s_hostnames +
+        loadbalancer_ips +
+        controller_ips
+      }}

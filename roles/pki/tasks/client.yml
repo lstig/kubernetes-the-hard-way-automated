@@ -1,2 +1,49 @@
 ---
-  
+- name: ({{ name }}) setting hostname cfssl flag
+  set_fact:
+    hostname_flag: "-hostname={{ hostnames | join(',') }}"
+  when: hostnames != False
+  no_log: true
+
+- name: ({{ name }}) Generate client certificates
+  command:
+    cmd: >
+      cfssl gencert
+      -ca="env:CA_CERT" -ca-key="env:CA_KEY"
+      {{ hostnames | ternary(hostname_flag, '') }}
+      -profile=kubernetes -config='{{ cert_files['ca_config'] }}' -
+    stdin: "{{ csr | tojson | string }}"
+  environment:
+    CA_CERT: "{{ ca['cert'] }}"
+    CA_KEY: "{{ ca['key'] }}"
+  register: certs
+  no_log: true
+
+- name: ({{ name }}) Setting 'client' fact
+  set_fact:
+    client: "{{ certs.stdout | from_json }}"
+  no_log: true
+
+- name: ({{ name }}) Encrypt client key
+  command:
+    cmd: "ansible-vault encrypt_string --stdin-name 'key'"
+    stdin: "{{ client.key }}"
+  register: encrypt_string
+  when: encrypt_client_key
+  no_log: true
+
+- name: ({{ name }}) Setting 'encrypted_key' fact
+  set_fact:
+    encrypted_key: "{{ encrypt_string.stdout | trim_encrypt_string }}"
+  when: encrypt_client_key
+  no_log: true
+
+- name: ({{ name }}) Add client to 'client_certs'
+  set_fact:
+    client_certs: >
+      {{
+        client_certs |
+        default({}) |
+        combine({ name: {'cert': client.cert, 'key': (encrypted_key | default(client.key))} })
+      }}
+  no_log: true

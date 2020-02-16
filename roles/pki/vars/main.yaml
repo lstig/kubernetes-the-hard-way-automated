@@ -4,7 +4,9 @@ cert_files:
   ca_config: "{{ certs_dir }}/ca-config.json"
   ca: "{{ certs_dir }}/ca.yaml"
   clients: "{{ certs_dir }}/clients.yaml"
-cert_update: false
+encrypt_ca_key: false
+encrypt_client_key: false
+ca_update: false
 ca_config:
   signing:
     default:
@@ -18,15 +20,15 @@ ca_config:
           - client auth
         expiry: 8760h
 csr:
-  CN: "{{ cn | default('Kubernetes') }}"
+  CN: "{{ attributes['cn'] | default('Kubernetes') }}"
   key:
     algo: rsa
     size: 2048
   names:
     - C: US
       L: Baltimore
-      O: "{{ org | default('Kubernetes') }}"
-      OU: "{{ org_unit | default('Kubernetes The Hard Way') }}"
+      O: "{{ attributes['org'] | default('Kubernetes') }}"
+      OU: "{{ attributes['org_unit'] | default('Kubernetes The Hard Way') }}"
       ST: Maryland
 k8s_hostnames:
   - kubernetes

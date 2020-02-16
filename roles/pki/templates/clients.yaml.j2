@@ -1,5 +1,5 @@
 ---
-{% for client, certs in clients.items() %}
+{% for client, certs in client_certs.items() | sort %}
 {{ client }}:
 {% for cert, content in certs.items() %}
 {% set tag = '!vault |' if (content | is_vault_string) else '|' %}
