@@ -1,0 +1,25 @@
+{% set ip = ansible_all_ipv4_addresses | ipaddr(private_address_cidr) | first %}
+{% set cluster = [] %}
+{% for host in groups["controllers"] %}
+{% set host_ip = hostvars[host]["ansible_all_ipv4_addresses"] | ipaddr(private_address_cidr) | first %}
+{% set cluster = cluster.append("{}=https://{}:2380".format(host, host_ip)) %}
+{% endfor %}
+data-dir: /etcd-data
+name: {{ ansible_hostname }}
+client-transport-security:
+  cert-file: /etcd-certs/{{ etcd_cert_name }}.pem
+  key-file: /etcd-certs/{{ etcd_cert_name }}-key.pem
+  trusted-ca-file: /etcd-certs/ca.pem
+  client-cert-auth: true
+peer-transport-security:
+  cert-file: /etcd-certs/{{ etcd_cert_name }}.pem
+  key-file: /etcd-certs/{{ etcd_cert_name }}-key.pem
+  trusted-ca-file: /etcd-certs/ca.pem
+  client-cert-auth: true
+initial-advertise-peer-urls: https://{{ ip }}:2380
+listen-peer-urls: https://{{ ip }}:2380
+listen-client-urls: https://{{ ip }}:2379,https://127.0.0.1:2379
+advertise-client-urls: https://{{ ip }}:2379
+initial-cluster-state: {{ etcd_cluster_state }}
+initial-cluster-token: {{ etcd_cluster_token }}
+initial-cluster: {{ cluster | join(",") }}

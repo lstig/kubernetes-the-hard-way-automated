@@ -18,7 +18,7 @@ Vagrant.configure("2") do |config|
   CONTORLLERS = 3
   WORKERS = 3
 
-  ANSIBLE_PLAYBOOK = "vagrant.yaml"
+  ANSIBLE_PLAYBOOK = "vagrant.yml"
   ANSIBLE_GROUPS = {
     "controllers" => [ "controller-[0:#{CONTORLLERS - 1}]" ],
     "workers" => [ "worker-[0:#{WORKERS - 1}]" ],

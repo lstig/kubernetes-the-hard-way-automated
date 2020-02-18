@@ -8,3 +8,18 @@
       loop: "{{groups['all']}}"
   roles:
     - pki
+  tags:
+    - init
+
+- hosts: all
+  become: yes
+  roles:
+    - common
+
+- hosts: controllers
+  become: yes
+  roles:
+    - etcd
+  tags:
+    - etcd
+    - control
