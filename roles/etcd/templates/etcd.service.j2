@@ -1,0 +1,30 @@
+[Unit]
+Description=etcd - a distributed reliable key-value store
+
+[Service]
+Environment=ETCD_IMAGE={{ etcd_image }}
+Environment=ETCD_VERSION={{ etcd_version }}
+Environment=DATA_DIR={{ etcd_data_dir }}
+Environment=CONF_DIR={{ etcd_conf_dir }}
+Environment=CERT_DIR={{ etcd_cert_dir }}
+
+Restart=on-failure
+RestartSec=5
+ExecStartPre=/bin/rm -f /%t/%n-pid /%t/%n-cid
+ExecStart=/usr/bin/podman run --conmon-pidfile /%t/%n-pid --cidfile /%t/%n-cid -d \
+  -p 2379:2379 \
+  -p 2380:2380 \
+  --net=host \
+  --volume=${DATA_DIR}:/etcd-data \
+  --volume=${CERT_DIR}:/etcd-certs \
+  --volume=${CONF_DIR}/etcd.conf.yaml:/etcd.conf.yaml \
+  ${ETCD_IMAGE}:${ETCD_VERSION} \
+  /usr/local/bin/etcd \
+  --config-file /etcd.conf.yaml
+ExecStop=/bin/sh -c "/usr/bin/podman rm -f `cat /%t/%n-cid`"
+KillMode=none
+Type=forking
+PIDFile=/%t/%n-pid
+
+[Install]
+WantedBy=multi-user.target

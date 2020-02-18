@@ -1,0 +1,66 @@
+---
+- name: Pull etcd container image
+  podman_image:
+    name: "{{ etcd_image }}"
+    tag: "{{ etcd_version }}"
+  tags:
+    - container
+
+- name: Ensure etcd host directories exist
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: 0750
+  loop:
+    - "{{ etcd_data_dir }}"
+    - "{{ etcd_cert_dir }}"
+  tags:
+    - configuration
+
+- name: Add ca cert
+  copy:
+    content: "{{ etcd_ca_cert }}"
+    dest: "{{ etcd_cert_dir }}/ca.pem"
+    mode: 0640
+  tags:
+    - configuration
+    - pki
+
+- name: Add etcd tls cert
+  copy:
+    content: "{{ etcd_tls_cert }}"
+    dest: "{{ etcd_cert_dir }}/{{ etcd_cert_name }}.pem"
+    mode: 0640
+  tags:
+    - configuration
+    - pki
+
+- name: Add etcd tls key
+  copy:
+    content: "{{ etcd_tls_key }}"
+    dest: "{{ etcd_cert_dir }}/{{ etcd_cert_name }}-key.pem"
+    mode: 0640
+  tags:
+    - configuration
+    - pki
+
+- name: Create etcd.conf.yaml
+  template:
+    src: etcd.conf.yaml.j2
+    dest: "{{ etcd_conf_dir }}/etcd.conf.yaml"
+    mode: 0640
+  notify:
+    - restart etcd
+
+- name: Generate etcd service file
+  template:
+    src: etcd.service.j2
+    dest: /etc/systemd/system/etcd.service
+  notify:
+    - update etcd service
+
+- name: Enable and start etcd
+  systemd:
+    name: etcd
+    state: started
+    enabled: yes

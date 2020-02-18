@@ -31,11 +31,15 @@
   include_vars:
     file: "{{ cert_files['ca'] }}"
     name: ca
+  tags:
+    - always
 
 - name: load client certificates
   include_vars:
     file: "{{ cert_files['clients'] }}"
     name: client_certs
+  tags:
+    - always
 
 # dynamically update list of worker certificates based number of workers
 - name: Adding worker instances to client list
