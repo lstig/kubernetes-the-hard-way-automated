@@ -1,0 +1,16 @@
+[Unit]
+Description=Kubernetes Kubelet
+Documentation=https://github.com/kubernetes/kubernetes
+After=containerd.service
+Requires=containerd.service
+
+[Service]
+ExecStart=/usr/local/bin/kubelet \
+{% for (key, value) in kubelet_service_config.items() %}
+  --{{key}}={{value}} {{ "\\" if not loop.last }}
+{% endfor %}
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

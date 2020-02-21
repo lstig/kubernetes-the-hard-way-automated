@@ -1,0 +1,68 @@
+---
+- include_vars:
+    file: kubelet.yaml
+
+- name: Download kubelet binary
+  get_url:
+    url: "{{ kube_release_url }}/kubelet"
+    dest: /usr/local/bin/kubelet
+    mode: 0755
+    force: "{{ force_kubelet_download | default(false) | ternary('yes', 'no') }}"
+
+- name: Create kubeconfig and kubelet lib directory
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: 0750
+  loop:
+    - "{{ kubelet_lib_dir }}"
+
+- name: Copy certs to {{ kubelet_lib_dir }}
+  copy:
+    src: "{{ certs_dir }}/{{ item }}"
+    dest: "{{ kubelet_lib_dir }}"
+    mode: 0640
+  loop:
+    - "{{ ansible_hostname }}.pem"
+    - "{{ ansible_hostname }}-key.pem"
+
+- name: Create kubelet configuration
+  copy:
+    content: "{{ kubelet_config | to_nice_yaml(indent=2) }}"
+    dest: "{{ kubelet_config_file }}"
+
+## TODO - replace {{ controller_ips |  first }} with loadbalance by traefik
+- name: Generate kubeconfig for kubelet
+  shell: |
+    kubectl config set-cluster {{ cluster }}\
+        --certificate-authority={{ kube_ca_cert }} \
+        --embed-certs=true \
+        --server=https://{{ controller_ips |  first }}:6443 \
+        --kubeconfig={{ ansible_hostname }}.kubeconfig
+
+    kubectl config set-credentials system:node:{{ ansible_hostname }} \
+        --client-certificate={{ ansible_hostname }}.pem \
+        --client-key={{ ansible_hostname }}-key.pem \
+        --embed-certs=true \
+        --kubeconfig={{ ansible_hostname }}.kubeconfig
+
+    kubectl config set-context default \
+        --cluster={{ cluster }}\
+        --user=system:node:{{ ansible_hostname }} \
+        --kubeconfig={{ ansible_hostname }}.kubeconfig
+
+    kubectl config use-context default --kubeconfig={{ ansible_hostname }}.kubeconfig
+  args:
+    chdir: "{{ kubelet_lib_dir }}"
+    creates: "{{ ansible_hostname }}.kubeconfig"
+
+- name: Create kubelet service file
+  template:
+    src: kubelet.service.j2
+    dest: /etc/systemd/system/kubelet.service
+
+- name: Enable and start kubelet
+  systemd:
+    name: kubelet
+    state: started
+    enabled: yes

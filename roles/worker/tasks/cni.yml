@@ -1,0 +1,13 @@
+---
+- include_vars:
+    file: cni.yaml
+
+- name: Create cni bridge configuration
+  copy:
+    content: "{{ cni_bridge_config | to_nice_json(indent=2) }}"
+    dest: "{{cni_config_dir}}/10-bridge.conf"
+
+- name: Create cni loopback configuration
+  copy:
+    content: "{{ cni_loopback_config | to_nice_json(indent=2) }}"
+    dest: "{{cni_config_dir}}/99-loopback.conf"

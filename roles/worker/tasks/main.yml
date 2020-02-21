@@ -1,0 +1,43 @@
+---
+- name: Install required packages
+  apt:
+    name: "{{ item }}"
+    state: latest
+  loop:
+    - socat
+    - conntrack
+    - ipset
+    - containerd
+  tags:
+    - package
+
+- name: Copy certs to {{ kube_lib_dir }}
+  copy:
+    src: "{{ certs_dir }}/{{ item }}"
+    dest: "{{ kube_lib_dir }}"
+    mode: 0640
+  loop:
+    - ca.pem
+    - "{{ ansible_hostname }}.pem"
+    - "{{ ansible_hostname }}-key.pem"
+
+- name: Disable swap
+  command: swapoff -a
+
+- name: Edit /etc/fstab to permanently disable swap
+  replace:
+    path: /etc/fstab
+    regexp: '^([^#].*?\sswap\s+sw\s+.*)$'
+    replace: '# \1'
+
+- name: Configure containerd
+  include_tasks: containerd.yml
+
+- name: Configure cni
+  include_tasks: cni.yml
+
+- name: Setup kubelet
+  include_tasks: kubelet.yml
+
+- name: Setup kube-proxy
+  include_tasks: kube_proxy.yml

@@ -1,0 +1,18 @@
+---
+kube_version: v1.17.3
+kube_bin_dir: "/opt/k8s/{{ kube_version }}/bin"
+kube_release_url: "https://storage.googleapis.com/kubernetes-release/release/{{ kube_version }}/bin/linux/amd64"
+kube_lib_dir: /var/lib/kubernetes
+kube_etc_dir: /etc/kubernetes/config
+kube_cluster_name: kubernetes
+kube_cluster_cidr: 10.200.0.0/16
+kube_service_cluster_ip_range: 10.32.0.0/24
+kube_service_node_port_range: 30000-32767
+kube_node_ipaddr: "{{ ansible_all_ipv4_addresses | ipaddr(private_address_cidr) | first }}"
+kube_encryption_config_file: "{{ kube_lib_dir }}/encryption-config.yaml"
+kube_ca_cert: "{{ kube_lib_dir }}/ca.pem"
+kube_ca_key: "{{ kube_lib_dir }}/ca-key.pem"
+kube_client_cert: "{{ kube_lib_dir }}/kubernetes.pem"
+kube_client_key: "{{ kube_lib_dir }}/kubernetes-key.pem"
+kube_service_account_key: "{{ kube_lib_dir }}/service-account.pem"
+kube_service_account_private_key: "{{ kube_lib_dir }}/service-account-key.pem"
