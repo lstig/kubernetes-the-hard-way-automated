@@ -42,6 +42,7 @@ clients:
     hostnames: >
       {{
         [ '127.0.0.1', '10.32.0.1' ] +
+        groups['loadbalancers'] +
         k8s_hostnames +
         loadbalancer_ips +
         loadbalancer_hosts +
