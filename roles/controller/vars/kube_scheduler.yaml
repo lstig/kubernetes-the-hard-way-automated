@@ -1,0 +1,3 @@
+kube_scheduler_image: k8s.gcr.io/kube-scheduler
+kube_scheduler_version: "{{ kube_version }}"
+kube_scheduler_config:

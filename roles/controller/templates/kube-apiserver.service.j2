@@ -1,0 +1,29 @@
+[Unit]
+Description=Kubernetes API Server
+Documentation=https://github.com/kubernetes/kubernetes
+
+[Service]
+Environment=IMAGE={{ kube_apiserver_image }}
+Environment=VERSION={{ kube_apiserver_version }}
+Environment=LIB_DIR={{ kube_lib_dir }}
+Environment=PORT={{ kube_apiserver_secure_port }}
+
+Restart=on-failure
+RestartSec=5
+ExecStartPre=/bin/rm -f /%t/%n-pid /%t/%n-cid
+ExecStart=/usr/bin/podman run --conmon-pidfile /%t/%n-pid --cidfile /%t/%n-cid -d \
+  -p ${PORT}:${PORT} \
+  --net=host \
+  --volume=${LIB_DIR}:${LIB_DIR} \
+  ${IMAGE}:${VERSION} \
+  /usr/local/bin/kube-apiserver \
+{% for (key, value) in kube_apiserver_config.items() %}
+  --{{key}}={{value}} {{ "\\" if not loop.last }}
+{% endfor %}
+ExecStop=/bin/sh -c "/usr/bin/podman rm -f `cat /%t/%n-cid`"
+KillMode=none
+Type=forking
+PIDFile=/%t/%n-pid
+
+[Install]
+WantedBy=multi-user.target
