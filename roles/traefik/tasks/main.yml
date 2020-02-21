@@ -1,0 +1,58 @@
+---
+- name: Pull traefik container image
+  podman_image:
+    name: "{{ traefik_image }}"
+    tag: "{{ traefik_version }}"
+  tags:
+    - container
+
+- name: Ensure traefik host directories exist
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: 0750
+  loop:
+    - "{{ traefik_conf_dir }}"
+    - "{{ traefik_cert_dir }}"
+    - "{{ traefik_dynamic_conf_dir }}"
+  tags:
+    - configuration
+
+- name: Copy tls certs to host
+  copy:
+    src: "{{ item }}"
+    dest: "{{ traefik_cert_dir }}"
+  loop:
+    - "{{ certs_dir }}/kubernetes.pem"
+    - "{{ certs_dir }}/kubernetes-key.pem"
+  tags:
+    - pki
+
+- name: Create traefik configuration file
+  copy:
+    content: "{{ traefik_static_conf | to_nice_yaml }}"
+    dest: "{{ traefik_conf_dir }}/traefik.yaml"
+  notify:
+    - restart traefik
+  tags:
+    - configuration
+
+- name: Create traefik dynamic configuration file
+  copy:
+    content: "{{ traefik_dynamic_conf | to_nice_yaml }}"
+    dest: "{{ traefik_dynamic_conf_dir }}/dynamic.yaml"
+  tags:
+    - configuration
+
+- name: Create traefik service file
+  template:
+    src: traefik.service.j2
+    dest: /etc/systemd/system/traefik.service
+  notify:
+    - update traefik service
+
+- name: Enable and start traefik
+  systemd:
+    name: traefik
+    state: started
+    enabled: yes

@@ -1,0 +1,21 @@
+---
+- name: Reload systemd
+  systemd:
+    daemon_reload: yes
+  listen:
+    - update traefik service
+
+- name: Gather service facts
+  service_facts:
+  listen:
+    - update traefik service
+    - restart traefik
+
+- name: Restart traefik (if running)
+  service:
+    name: traefik
+    state: restarted
+  when: ansible_facts.services['traefik.service']['state'] == "running"
+  listen:
+    - update traefik service
+    - restart traefik
