@@ -1,0 +1,48 @@
+kube_apiserver_image: k8s.gcr.io/kube-apiserver
+kube_apiserver_version: "{{ kube_version }}"
+kube_apiserver_log_level: 2
+kube_apiserver_bind_address: 0.0.0.0
+kube_apiserver_secure_port: 6443
+kube_apiserver_count: "{{ groups['controllers'] | length }}"
+kube_apiserver_authorization_mode:
+  - Node
+  - RBAC
+kube_apiserver_admission_plugins:
+  - NamespaceLifecycle
+  - NodeRestriction
+  - LimitRanger
+  - ServiceAccount
+  - DefaultStorageClass
+  - ResourceQuota
+kube_apiserver_runtime_config:
+  - api/all=true
+kube_apiserver_config:
+  advertise-address: "{{ kube_node_ipaddr }}"
+  allow-privileged: true
+  apiserver-count: "{{ kube_apiserver_count }}"
+  audit-log-maxage: 30
+  audit-log-maxbackup: 3
+  audit-log-maxsize: 100
+  audit-log-path: /var/log/audit.log
+  authorization-mode: "{{ kube_apiserver_authorization_mode | join(',') }}"
+  bind-address: "{{ kube_apiserver_bind_address }}"
+  client-ca-file: "{{ kube_ca_cert }}"
+  enable-admission-plugins: "{{ kube_apiserver_admission_plugins | join(',') }}"
+  etcd-cafile: "{{ kube_ca_cert }}"
+  etcd-certfile: "{{ kube_client_cert }}"
+  etcd-keyfile: "{{ kube_client_key }}"
+  etcd-servers: "{{ controller_ips | map('map_format', pattern='https://{}:2379') | join(',')}}"
+  event-ttl: 1h
+  encryption-provider-config: "{{ kube_encryption_config }}"
+  kubelet-certificate-authority: "{{ kube_ca_cert }}"
+  kubelet-client-certificate: "{{ kube_client_cert }}"
+  kubelet-client-key: "{{ kube_client_key }}"
+  kubelet-https: true
+  runtime-config: "{{ kube_apiserver_runtime_config | join(',') }}"
+  secure-port: "{{ kube_apiserver_secure_port }}"
+  service-account-key-file: "{{ kube_service_account_key }}"
+  service-cluster-ip-range: "{{ kube_service_cluster_ip_range }}"
+  service-node-port-range: "{{ kube_service_node_port_range }}"
+  tls-cert-file: "{{ kube_client_cert }}"
+  tls-private-key-file: "{{ kube_client_key }}"
+  v: "{{ kube_apiserver_log_level }}"

@@ -1,6 +1,7 @@
 ---
 certs_dir: "{{ playbook_dir }}/certs"
 local_vars_dir: "{{ playbook_dir }}/local_vars"
+cluster: k8s-demo
 public_address_cidr: "172.16.0.0/24"
 private_address_cidr: "10.240.0.0/24"
 domain: example.com

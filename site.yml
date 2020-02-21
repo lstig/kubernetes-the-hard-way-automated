@@ -31,3 +31,10 @@
   tags:
     - proxy
     - loadbalancers
+
+- hosts: controllers
+  become: yes
+  roles:
+    - controller
+  tags:
+    - controller

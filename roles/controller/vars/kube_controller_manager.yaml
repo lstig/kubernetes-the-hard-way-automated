@@ -1,0 +1,19 @@
+kube_controller_manager_image: k8s.gcr.io/kube-controller-manager
+kube_controller_manager_version: "{{ kube_version }}"
+kube_controller_manager_level: 2
+kube_controller_manager_secure_port: 10257
+kube_controller_manager_address: 0.0.0.0
+kube_controller_manager_config:
+  address: "{{ kube_controller_manager_address }}"
+  cluster-cidr: "{{ kube_cluster_cidr }}"
+  cluster-name: "{{ kube_cluster_name }}"
+  cluster-signing-cert-file: "{{ kube_ca_cert }}"
+  cluster-signing-key-file: "{{ kube_ca_key }}"
+  kubeconfig: "{{ kube_lib_dir }}/kube-controller-manager.kubeconfig"
+  leader-elect: true
+  root-ca-file: "{{ kube_ca_cert }}"
+  secure-port: "{{ kube_controller_manager_secure_port }}"
+  service-account-private-key-file: "{{ kube_service_account_private_key }}"
+  service-cluster-ip-range: "{{ kube_service_cluster_ip_range }}"
+  use-service-account-credentials: true
+  v: "{{ kube_controller_manager_level }}"

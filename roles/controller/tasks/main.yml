@@ -1,0 +1,55 @@
+---
+- name: Load local variables
+  include_vars:
+    file: "{{ local_vars_dir }}/controllers.yaml"
+    name: kube
+
+- name: Create kubernetes directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: 0750
+  loop:
+    - "{{ kube_lib_dir }}"
+  tags:
+    - configuration
+
+- name: Copy certs to {{ kube_lib_dir }}
+  copy:
+    src: "{{ certs_dir }}/{{ item }}"
+    dest: "{{ kube_lib_dir }}"
+    mode: 0640
+  loop:
+    - ca.pem
+    - ca-key.pem
+    - kubernetes-key.pem
+    - kubernetes.pem
+    - service-account-key.pem
+    - service-account.pem
+
+- name: Create encrpytion-config.yaml
+  template:
+    dest: "{{ kube_lib_dir }}/encryption-config.yaml"
+    src: encryption-config.yaml.j2
+    mode: 0640
+  vars:
+    encryption_key: "{{ kube['encryption_key'] }}"
+
+# move this to a handler or make conditional based on
+# output of: kubectl version --client  --short -o json
+- name: Download kubectl binary
+  get_url:
+    url: "{{ kube_release_url }}/kubectl"
+    dest: /usr/local/bin/kubectl
+    mode: 0755
+    force: "{{ force_kubectl_download | default('no') }}"
+
+- name: Setup kube-apiserver
+  include_tasks: kube_apiserver.yml
+  tags:
+    - kube_apiserver
+
+- name: Setup kube-controller-manager
+  include_tasks: kube_controller_manager.yml
+  tags:
+    - kube_controller_manager
