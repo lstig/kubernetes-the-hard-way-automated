@@ -1,0 +1,30 @@
+[Unit]
+Description=Traefik - an opensource edge router
+
+[Service]
+Environment=TRAEFIK_IMAGE={{ traefik_image }}
+Environment=TRAEFIK_VERSION={{ traefik_version }}
+Environment=CONF_DIR={{ traefik_conf_dir }}
+Environment=CERT_DIR={{ traefik_cert_dir }}
+Environment=DYNAMIC_CONF_DIR={{ traefik_dynamic_conf_dir }}
+
+Restart=on-failure
+RestartSec=5
+ExecStartPre=/bin/rm -f /%t/%n-pid /%t/%n-cid
+ExecStart=/usr/bin/podman run --conmon-pidfile /%t/%n-pid --cidfile /%t/%n-cid -d \
+  -p 80:80 \
+  -p 8080:8080 \
+  -p 443:443 \
+  --net=host \
+  --volume=${CONF_DIR}/traefik.yaml:/etc/traefik/traefik.yaml \
+  --volume=${CERT_DIR}:/etc/traefik/certs \
+  --volume=${DYNAMIC_CONF_DIR}:/etc/traefik/conf.d \
+  ${TRAEFIK_IMAGE}:${TRAEFIK_VERSION} \
+  traefik
+ExecStop=/bin/sh -c "/usr/bin/podman rm -f `cat /%t/%n-cid`"
+KillMode=none
+Type=forking
+PIDFile=/%t/%n-pid
+
+[Install]
+WantedBy=multi-user.target

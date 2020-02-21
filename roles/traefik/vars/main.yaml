@@ -1,0 +1,57 @@
+---
+traefik_image: registry.hub.docker.com/library/traefik
+traefik_version: v2.1.4
+traefik_conf_dir: /etc/traefik
+traefik_cert_dir: "{{ traefik_conf_dir }}/certs"
+traefik_dynamic_conf_dir: "{{ traefik_conf_dir }}/conf.d"
+traefik_static_conf:
+  global:
+    sendAnonymousUsage: false
+  entryPoints:
+    web:
+      address: ":80"
+    websecure:
+      address: ":443"
+  providers:
+    file:
+      directory: /etc/traefik/conf.d
+      watch: true
+  api:
+    dashboard: true
+traefik_dynamic_conf:
+  http:
+    routers:
+      api_redirect:
+        rule: "Host(`{{ ansible_hostname }}.{{ domain }}`) && (PathPrefix(`/api`) || PathPrefix(`/dashboard`))"
+        service: api@internal
+        entryPoints:
+          - web
+        middlewares:
+          - https_redirect
+      api:
+        rule: "Host(`{{ ansible_hostname }}.{{ domain }}`) && (PathPrefix(`/api`) || PathPrefix(`/dashboard`))"
+        service: api@internal
+        entryPoints:
+          - websecure
+        tls: {}
+    middlewares:
+      https_redirect:
+        redirectScheme:
+          scheme: https
+          permanent: true
+  tls:
+    certificates:
+      - certFile: /etc/traefik/certs/kubernetes.pem
+        keyFile: /etc/traefik/certs/kubernetes-key.pem
+  # tcp:
+  #   routers:
+  #     Router-1:
+  #       rule: "path(`/k8s`)"
+  #       service: kubernetes
+  #       tls: {}
+  #   services:
+  #     my-service:
+  #       loadBalancer:
+  #         servers:
+  #         - address: "xx.xx.xx.xx:xx"
+  #         - address: "xx.xx.xx.xx:xx"
