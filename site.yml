@@ -5,7 +5,9 @@
       setup:
       delegate_to: "{{item}}"
       delegate_facts: True
-      loop: "{{groups['all']}}"
+      loop: "{{ groups['all'] }}"
+      tags:
+        - worker
   roles:
     - pki
   tags:
@@ -38,3 +40,10 @@
     - controller
   tags:
     - controller
+
+- hosts: workers
+  become: yes
+  roles:
+    - worker
+  tags:
+    - worker

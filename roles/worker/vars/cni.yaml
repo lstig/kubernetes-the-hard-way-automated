@@ -1,0 +1,19 @@
+---
+cni_version: 0.4.0
+cni_config_dir: /etc/cni/net.d
+cni_bridge_config:
+  cniVersion: "{{ cni_version }}"
+  name: bridge
+  type: bridge
+  bridge: cnio0
+  isGateway: true
+  ipMasq: true
+  ipam:
+    type: host-local
+    ranges:
+      - [{subnet: "{{ kube_cluster_cidr }}"}]
+    routes: [{dst: 0.0.0.0/0}]
+cni_loopback_config:
+  cniVersion: "{{ cni_version }}"
+  name: lo
+  type: loopback

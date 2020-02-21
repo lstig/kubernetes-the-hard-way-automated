@@ -1,0 +1,27 @@
+[Unit]
+Description=Kubernetes Kube Proxy
+Documentation=https://github.com/kubernetes/kubernetes
+
+[Service]
+Environment=IMAGE={{ kube_proxy_image }}
+Environment=VERSION={{ kube_proxy_version }}
+Environment=LIB_DIR={{ kube_proxy_lib_dir }}
+
+Restart=on-failure
+RestartSec=5
+ExecStartPre=/bin/rm -f /%t/%n-pid /%t/%n-cid
+ExecStart=/usr/bin/podman run --conmon-pidfile /%t/%n-pid --cidfile /%t/%n-cid -d \
+  --net=host \
+  --volume=${LIB_DIR}:${LIB_DIR} \
+  ${IMAGE}:${VERSION} \
+  /usr/local/bin/kube-proxy \
+{% for (key, value) in kube_proxy_service_config.items() %}
+  --{{key}}={{value}} {{ "\\" if not loop.last }}
+{% endfor %}
+ExecStop=/bin/sh -c "/usr/bin/podman rm -f `cat /%t/%n-cid`"
+KillMode=none
+Type=forking
+PIDFile=/%t/%n-pid
+
+[Install]
+WantedBy=multi-user.target

@@ -4,18 +4,6 @@
     file: "{{ local_vars_dir }}/controllers.yaml"
     name: kube
 
-- name: Create kubernetes directories
-  file:
-    path: "{{ item }}"
-    state: directory
-    mode: 0750
-  loop:
-    - "{{ kube_lib_dir }}"
-    - "{{ kube_etc_dir }}"
-    - "/home/vagrant/.kube"
-  tags:
-    - configuration
-
 - name: Copy certs to {{ kube_lib_dir }}
   copy:
     src: "{{ certs_dir }}/{{ item }}"
@@ -42,15 +30,6 @@
     mode: 0640
   vars:
     encryption_key: "{{ kube['encryption_key'] }}"
-
-# move this to a handler or make conditional based on
-# output of: kubectl version --client  --short -o json
-- name: Download kubectl binary
-  get_url:
-    url: "{{ kube_release_url }}/kubectl"
-    dest: /usr/local/bin/kubectl
-    mode: 0755
-    force: "{{ force_kubectl_download | default(false) | ternary('yes', 'no') }}"
 
 - name: Generate kubeconfig for admin user
   shell: |
