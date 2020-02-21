@@ -11,6 +11,8 @@
     mode: 0750
   loop:
     - "{{ kube_lib_dir }}"
+    - "{{ kube_etc_dir }}"
+    - "/home/vagrant/.kube"
   tags:
     - configuration
 
@@ -22,6 +24,12 @@
   loop:
     - ca.pem
     - ca-key.pem
+    - admin.pem
+    - admin-key.pem
+    - kube-scheduler.pem
+    - kube-scheduler-key.pem
+    - kube-controller-manager.pem
+    - kube-controller-manager-key.pem
     - kubernetes-key.pem
     - kubernetes.pem
     - service-account-key.pem
@@ -42,7 +50,33 @@
     url: "{{ kube_release_url }}/kubectl"
     dest: /usr/local/bin/kubectl
     mode: 0755
-    force: "{{ force_kubectl_download | default('no') }}"
+    force: "{{ force_kubectl_download | default(false) | ternary('yes', 'no') }}"
+
+- name: Generate kubeconfig for admin user
+  shell: |
+    kubectl config set-cluster {{ cluster }} \
+      --certificate-authority="{{ kube_lib_dir }}/ca.pem" \
+      --embed-certs=true \
+      --server=https://127.0.0.1:6443 \
+      --kubeconfig=config
+
+    kubectl config set-credentials {{ clients['admin']['attributes']['cn'] }} \
+      --client-certificate="{{ kube_lib_dir }}/admin.pem" \
+      --client-key="{{ kube_lib_dir }}/admin-key.pem" \
+      --embed-certs=true \
+      --kubeconfig=config
+
+    kubectl config set-context default \
+      --cluster={{ cluster }} \
+      --user={{ clients['admin']['attributes']['cn'] }} \
+      --kubeconfig=config
+
+    kubectl config use-context default --kubeconfig=config
+
+    chown -R vagrant. /home/vagrant/.kube
+  args:
+    chdir: "/home/vagrant/.kube"
+    creates: config
 
 - name: Setup kube-apiserver
   include_tasks: kube_apiserver.yml
@@ -53,3 +87,56 @@
   include_tasks: kube_controller_manager.yml
   tags:
     - kube_controller_manager
+
+- name: Setup kube-scheduler
+  include_tasks: kube_scheduler.yml
+  tags:
+    - kube_scheduler
+
+- name: Create ClusterRole to allow kubelet api access from apiserver
+  k8s:
+    state: present
+    kubeconfig: ~/.kube/config
+    definition:
+      apiVersion: rbac.authorization.k8s.io/v1beta1
+      kind: ClusterRole
+      metadata:
+        annotations:
+          rbac.authorization.kubernetes.io/autoupdate: "true"
+        labels:
+          kubernetes.io/bootstrapping: rbac-defaults
+        name: system:kube-apiserver-to-kubelet
+      rules:
+        - apiGroups:
+            - ""
+          resources:
+            - nodes/proxy
+            - nodes/stats
+            - nodes/log
+            - nodes/spec
+            - nodes/metrics
+          verbs:
+            - "*"
+  become_user: vagrant
+  run_once: true
+
+- name: Bind newly created role to kubernetes user
+  k8s:
+    state: present
+    kubeconfig: ~/.kube/config
+    definition:
+      apiVersion: rbac.authorization.k8s.io/v1beta1
+      kind: ClusterRoleBinding
+      metadata:
+        name: system:kube-apiserver
+        namespace: ""
+      roleRef:
+        apiGroup: rbac.authorization.k8s.io
+        kind: ClusterRole
+        name: system:kube-apiserver-to-kubelet
+      subjects:
+        - apiGroup: rbac.authorization.k8s.io
+          kind: User
+          name: kubernetes
+  become_user: vagrant
+  run_once: true

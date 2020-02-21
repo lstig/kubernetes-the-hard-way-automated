@@ -16,8 +16,8 @@ Vagrant.configure("2") do |config|
   end
 
   LB_MEM = 256
-  WORKER_MEM = 640
-  CONTROLLER_MEM = 640
+  WORKER_MEM = 512
+  CONTROLLER_MEM = 1024
 
   CONTORLLERS = 3
   WORKERS = 3
