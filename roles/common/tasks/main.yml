@@ -1,9 +1,4 @@
 ---
-- name: Upgrade all packages to the latest version
-  apt:
-    name: "*"
-    state: latest
-
 - name: Set /etc/hosts entries for cluster
   template:
     src: etc/hosts.j2
@@ -11,3 +6,33 @@
     owner: root
     group: root
     mode: '0644'
+  tags:
+    - configuration
+
+- name: Add apt-key for OpenSUSE repo
+  apt_key:
+    url: https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable/xUbuntu_{{ ansible_distribution_version }}/Release.key
+    state: present
+  tags:
+    - package
+
+- name: Add podman repo
+  apt_repository:
+    repo: deb http://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_{{ ansible_distribution_version }}/ /
+    filename: devel:kubic:libcontainers:stable.list
+  tags:
+    - package
+
+- name: Upgrade all packages to the latest version
+  apt:
+    name: "*"
+    state: latest
+  tags:
+    - package
+
+- name: Install podman
+  apt:
+    name: podman
+    state: latest
+  tags:
+    - package

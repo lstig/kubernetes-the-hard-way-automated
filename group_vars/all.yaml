@@ -1,12 +1,16 @@
 ---
+certs_dir: "{{ playbook_dir }}/certs"
+local_vars_dir: "{{ playbook_dir }}/local_vars"
 public_address_cidr: "172.16.0.0/24"
 private_address_cidr: "10.240.0.0/24"
+domain: example.com
 k8s_hostnames:
   - kubernetes
   - kubernetes.default
   - kubernetes.default.svc
   - kubernetes.default.svc.cluster
   - kubernetes.svc.cluster.local
+loadbalancer_hosts: "{{ groups['loadbalancers'] | map('map_format', domain, pattern='{}.{}') | list }}"
 loadbalancer_ips: "{{ groups['loadbalancers'] | map('extract', hostvars, 'ansible_all_ipv4_addresses') | ipaddr(public_address_cidr) | list | flatten | unique }}"
 controller_ips: "{{ groups['controllers'] | map('extract', hostvars, 'ansible_all_ipv4_addresses') | ipaddr(private_address_cidr) | list | flatten | unique }}"
 clients:
@@ -39,5 +43,6 @@ clients:
         [ '127.0.0.1', '10.32.0.1' ] +
         k8s_hostnames +
         loadbalancer_ips +
+        loadbalancer_hosts +
         controller_ips
       }}
