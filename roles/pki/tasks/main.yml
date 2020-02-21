@@ -9,6 +9,11 @@
     path: "{{ certs_dir }}"
     state: directory
 
+- name: create local 'vars' directory
+  file:
+    path: "{{ local_vars_dir }}"
+    state: directory
+
 - name: create CA config file
   copy:
     content: "{{ ca_config | to_nice_json(indent=2) }}"
@@ -92,3 +97,9 @@
   template:
     src: clients.yaml.j2
     dest: "{{ cert_files['clients'] }}"
+
+- name: Generate cert files
+  include_tasks: save_file.yml
+  loop: "{{ client_certs | combine({'ca': ca}) | dict2items }}"
+  loop_control:
+    loop_var: cert

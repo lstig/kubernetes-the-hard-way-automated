@@ -23,3 +23,11 @@
   tags:
     - etcd
     - control
+
+- hosts: loadbalancers
+  become: yes
+  roles:
+    - traefik
+  tags:
+    - proxy
+    - loadbalancers

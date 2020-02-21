@@ -7,6 +7,11 @@ def filter(func):
     return func
 
 @filter
+def map_format(*values, pattern):
+    """Performs more complex formatting on a list of values"""
+    return pattern.format(*values)
+
+@filter
 def is_vault_string(str):
     '''check if string is an encrypted ansible vault'''
     pattern = r'^\$ANSIBLE_VAULT;\d+\.\d+;(AES256)'
