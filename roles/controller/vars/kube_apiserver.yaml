@@ -33,7 +33,7 @@ kube_apiserver_config:
   etcd-keyfile: "{{ kube_client_key }}"
   etcd-servers: "{{ controller_ips | map('map_format', pattern='https://{}:2379') | join(',')}}"
   event-ttl: 1h
-  encryption-provider-config: "{{ kube_encryption_config }}"
+  encryption-provider-config: "{{ kube_encryption_config_file }}"
   kubelet-certificate-authority: "{{ kube_ca_cert }}"
   kubelet-client-certificate: "{{ kube_client_cert }}"
   kubelet-client-key: "{{ kube_client_key }}"
