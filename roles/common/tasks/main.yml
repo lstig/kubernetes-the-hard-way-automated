@@ -30,9 +30,18 @@
   tags:
     - package
 
-- name: Install podman
+- name: Install podman and pip3
   apt:
-    name: podman
+    name: "{{ item }}"
     state: latest
+  loop:
+    - podman
+    - python3-pip
+  tags:
+    - package
+
+- name: Install openshift python module
+  pip:
+    name: openshift
   tags:
     - package

@@ -14,5 +14,9 @@
   template:
     src: kube-apiserver.service.j2
     dest: /etc/systemd/system/kube-apiserver.service
-#   notify:
-#     - update traefik service
+
+- name: Enable and start kube-apiserver
+  systemd:
+    name: kube-apiserver
+    state: started
+    enabled: yes

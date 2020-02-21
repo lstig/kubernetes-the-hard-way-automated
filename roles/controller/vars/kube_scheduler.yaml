@@ -1,3 +1,16 @@
 kube_scheduler_image: k8s.gcr.io/kube-scheduler
 kube_scheduler_version: "{{ kube_version }}"
+kube_scheduler_log_level: 2
+kube_scheduler_secure_port: 10259
+kube_scheduler_config_file: "{{ kube_etc_dir }}/kube-scheduler.yaml"
+kube_scheduler_config_content:
+  apiVersion: kubescheduler.config.k8s.io/v1alpha1
+  kind: KubeSchedulerConfiguration
+  clientConnection:
+    kubeconfig: "{{ kube_lib_dir }}/kube-scheduler.kubeconfig"
+  leaderElection:
+    leaderElect: true
 kube_scheduler_config:
+  config: "{{ kube_scheduler_config_file }}"
+  secure-port: "{{ kube_scheduler_secure_port }}"
+  v: "{{ kube_scheduler_log_level }}"

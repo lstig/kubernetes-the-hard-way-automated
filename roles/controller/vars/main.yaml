@@ -2,6 +2,7 @@ kube_version: v1.17.3
 kube_bin_dir: "/opt/k8s/{{ kube_version }}/bin"
 kube_release_url: "https://storage.googleapis.com/kubernetes-release/release/{{ kube_version }}/bin/linux/amd64"
 kube_lib_dir: /var/lib/kubernetes
+kube_etc_dir: /etc/kubernetes/config
 kube_cluster_name: kubernetes
 kube_cluster_cidr: 10.200.0.0/16
 kube_service_cluster_ip_range: 10.32.0.0/24
