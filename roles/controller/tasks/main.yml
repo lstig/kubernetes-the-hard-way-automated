@@ -28,9 +28,9 @@
     - service-account.pem
 
 - name: Create encrpytion-config.yaml
-  template:
-    dest: "{{ kube_lib_dir }}/encryption-config.yaml"
-    src: encryption-config.yaml.j2
+  copy:
+    dest: "{{ kube_encryption_config_file }}"
+    content: "{{ kube_encryption_config | to_nice_yaml(indent=2) }}"
     mode: 0640
   vars:
     encryption_key: "{{ kube['encryption_key'] }}"
