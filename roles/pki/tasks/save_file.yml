@@ -1,0 +1,7 @@
+---
+- name: Saving cert files
+  copy:
+    content: "{{ item.value }}"
+    dest: "{{ '{}/{}.pem'.format(certs_dir, cert.key) if item.key == 'cert' else '{}/{}-key.pem'.format(certs_dir, cert.key) }}"
+  loop: "{{ cert.value | dict2items }}"
+  no_log: true

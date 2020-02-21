@@ -2,6 +2,10 @@
 # vi: set ft=ruby :
 
 Vagrant.configure("2") do |config|
+
+  # docs: https://github.com/cogitatio/vagrant-hostsupdater
+  config.vagrant.plugins = [ "vagrant-hostsupdater" ]
+
   config.vm.box = "ubuntu/bionic64"
 
   config.vm.provider "virtualbox" do |vb|
@@ -18,6 +22,8 @@ Vagrant.configure("2") do |config|
   CONTORLLERS = 3
   WORKERS = 3
 
+  DOMAIN = "example.com"
+
   ANSIBLE_PLAYBOOK = "vagrant.yml"
   ANSIBLE_GROUPS = {
     "controllers" => [ "controller-[0:#{CONTORLLERS - 1}]" ],
@@ -27,8 +33,8 @@ Vagrant.configure("2") do |config|
   }
 
   config.vm.define "lb-0" do |this|
-    this.vm.hostname = "lb-0"
-    this.vm.network "private_network", ip: "10.240.0.2"
+    this.vm.hostname = "lb-0.#{DOMAIN}"
+    this.vm.network "private_network", ip: "10.240.0.2", hostsupdater: "skip"
     this.vm.network "private_network", ip: "172.16.0.2"
 
     this.vm.provider "virtualbox" do |vb|
@@ -38,8 +44,8 @@ Vagrant.configure("2") do |config|
 
   (0...CONTORLLERS).each do |n|
     config.vm.define "controller-#{n}" do |this|
-      this.vm.hostname = "controller-#{n}"
-      this.vm.network "private_network", ip: "10.240.0.1#{n}"
+      this.vm.hostname = "controller-#{n}.#{DOMAIN}"
+      this.vm.network "private_network", ip: "10.240.0.1#{n}", hostsupdater: "skip"
       this.vm.network "private_network", ip: "172.16.0.1#{n}"
 
       this.vm.provider "virtualbox" do |vb|
@@ -50,8 +56,8 @@ Vagrant.configure("2") do |config|
 
   (0...WORKERS).each do |n|
     config.vm.define "worker-#{n}" do |this|
-      this.vm.hostname = "worker-#{n}"
-      this.vm.network "private_network", ip: "10.240.0.2#{n}"
+      this.vm.hostname = "worker-#{n}.#{DOMAIN}"
+      this.vm.network "private_network", ip: "10.240.0.2#{n}", hostsupdater: "skip"
       this.vm.network "private_network", ip: "172.16.0.2#{n}"
 
       this.vm.provider "virtualbox" do |vb|
