@@ -8,7 +8,7 @@
 - name: Gather service facts
   service_facts:
   listen:
-    - update_etcd_service
+    - update etcd service
     - restart etcd
 
 - name: Restart etcd (if running)
@@ -17,5 +17,5 @@
     state: restarted
   when: ansible_facts.services['etcd.service']['state'] == "running"
   listen:
-    - update etcd ervice
+    - update etcd service
     - restart etcd
