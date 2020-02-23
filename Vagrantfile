@@ -19,14 +19,14 @@ Vagrant.configure("2") do |config|
   WORKER_MEM = 512
   CONTROLLER_MEM = 1024
 
-  CONTORLLERS = 3
+  CONTROLLERS = 3
   WORKERS = 3
 
   DOMAIN = "example.com"
 
   ANSIBLE_PLAYBOOK = "vagrant.yml"
   ANSIBLE_GROUPS = {
-    "controllers" => [ "controller-[0:#{CONTORLLERS - 1}]" ],
+    "controllers" => [ "controller-[0:#{CONTROLLERS - 1}]" ],
     "workers" => [ "worker-[0:#{WORKERS - 1}]" ],
     "k8s:children" => [ "controllers", "workers" ],
     "loadbalancers" => [ "lb-0" ]
@@ -42,7 +42,7 @@ Vagrant.configure("2") do |config|
     end
   end
 
-  (0...CONTORLLERS).each do |n|
+  (0...CONTROLLERS).each do |n|
     config.vm.define "controller-#{n}" do |this|
       this.vm.hostname = "controller-#{n}.#{DOMAIN}"
       this.vm.network "private_network", ip: "10.240.0.1#{n}", hostsupdater: "skip"
