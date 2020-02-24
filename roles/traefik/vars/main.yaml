@@ -38,14 +38,21 @@ traefik_static_conf:
   api:
     dashboard: true
 traefik_dynamic_conf:
-  http:
+  tcp:
     routers:
       k8s_api:
-        rule: "Host(`{{ ansible_hostname }}.{{ domain }}`) || Host(`{{ ansible_hostname }}`)"
+        rule: "HostSNI(`{{ ansible_hostname }}.{{ domain }}`) || HostSNI(`{{ ansible_hostname }}`)"
         service: k8s_api
         entryPoints:
           - kubernetes
-        tls: {}
+        tls:
+          passthrough: true
+    services:
+      k8s_api:
+        loadBalancer:
+          servers: "{{ traefik_k8s_apiservers }}"
+  http:
+    routers:
       api_redirect:
         rule: "Host(`{{ ansible_hostname }}.{{ domain }}`) && (PathPrefix(`/api`) || PathPrefix(`/dashboard`))"
         service: api@internal
@@ -59,14 +66,6 @@ traefik_dynamic_conf:
         entryPoints:
           - websecure
         tls: {}
-    services:
-      k8s_api:
-        loadBalancer:
-          servers: "{{ traefik_k8s_apiservers }}"
-          healthCheck:
-            path: /healthz
-            interval: "10s"
-            timeout: "3s"
     middlewares:
       https-redirect:
         redirectScheme:
