@@ -2,10 +2,8 @@
 .DS_Store
 
 # Project Specific
-certs/*
-!certs/.gitkeep
-local_vars/*
-!local_vars/.gitkeep
+local/*
+!local/.gitkeep
 
 # Vagrant stuff
 acceptance_config.yml

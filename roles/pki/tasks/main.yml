@@ -4,22 +4,21 @@
 # Setup local files and directories
 ##
 
-- name: create local 'certs' directory
+- name: Create local directories
   file:
-    path: "{{ certs_dir }}"
+    path: "{{ item }}"
     state: directory
+  loop:
+    - "{{ local_vars_dir }}"
+    - "{{ local_certs_dir }}"
+    - "{{ local_kubeconfigs_dir }}"
 
-- name: create local 'vars' directory
-  file:
-    path: "{{ local_vars_dir }}"
-    state: directory
-
-- name: create CA config file
+- name: Create CA config file
   copy:
     content: "{{ ca_config | to_nice_json(indent=2) }}"
     dest: "{{ cert_files['ca_config'] }}"
 
-- name: ensure yaml files for CA and client certs exist
+- name: Ensure yaml files for CA and client certs exist
   copy:
     content: ""
     dest: "{{ item }}"
@@ -32,14 +31,14 @@
 # Load variables
 ##
 
-- name: load CA certificate
+- name: Load CA certificate
   include_vars:
     file: "{{ cert_files['ca'] }}"
     name: ca
   tags:
     - always
 
-- name: load client certificates
+- name: Load client certificates
   include_vars:
     file: "{{ cert_files['clients'] }}"
     name: client_certs
@@ -102,9 +101,33 @@
 
 - name: Generate cert files
   include_tasks: save_file.yml
-  loop: "{{ client_certs | combine({'ca': ca}) | dict2items }}"
+  loop: "{{ client_certs | combine({ 'ca': ca }) | dict2items }}"
   loop_control:
     loop_var: cert
+
+##
+# Generate kubeconfigs
+##
+
+- name: Generate worker node kubeconfigs
+  include_tasks: generate_kubeconfig.yml
+  vars:
+    client: "{{ item }}"
+    user: "{{ clients | get_dict_value(item, 'attributes', 'cn') }}"
+    apiserver: "{{ 'https://{}:6443'.format(loadbalancer) }}"
+  loop: "{{ groups['workers'] }}"
+  tags:
+    - kubeconfig
+
+- name: Generate k8s component kubeconfigs
+  include_tasks: generate_kubeconfig.yml
+  vars:
+    client: "{{ item.key }}"
+    user: "{{ item.value['user'] }}"
+    apiserver: "{{ item.value['apiserver'] }}"
+  loop: "{{ kubeconfigs | dict2items }}"
+  tags:
+    - kubeconfig
 
 ##
 # Generate data encryption key
@@ -128,11 +151,13 @@
 - name: Generate base64 encoded key
   shell: head -c 32 /dev/urandom | base64
   register: encryption_key
+  when: "'encryption_key' not in kube"
   tags:
     - init
 
 - set_fact:
     kube: "{{ kube | default({}) | combine({'encryption_key': encryption_key.stdout}) }}"
+  when: "'encryption_key' not in kube"
   tags:
     - init
 

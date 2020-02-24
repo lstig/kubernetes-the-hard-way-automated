@@ -1,17 +1,36 @@
 ---
 traefik_image: registry.hub.docker.com/library/traefik
 traefik_version: v2.1.4
+traefik_log_level: INFO
+traefik_k8s_apiservers: []
+traefik_log_dir: /var/log/traefik
 traefik_conf_dir: /etc/traefik
 traefik_cert_dir: "{{ traefik_conf_dir }}/certs"
 traefik_dynamic_conf_dir: "{{ traefik_conf_dir }}/conf.d"
 traefik_static_conf:
   global:
     sendAnonymousUsage: false
+  serversTransport:
+    rootCAs:
+      - "{{ traefik_cert_dir }}/ca.pem"
+  log:
+    level: "{{ traefik_log_level }}"
+    filePath: "{{ traefik_log_dir }}/traefik.log"
+  accessLog:
+    filePath: "{{ traefik_log_dir }}/access.log"
   entryPoints:
     web:
       address: ":80"
+      proxyProtocol:
+        insecure: true
     websecure:
       address: ":443"
+      proxyProtocol:
+        insecure: true
+    kubernetes:
+      address: ":6443"
+      proxyProtocol:
+        insecure: true
   providers:
     file:
       directory: /etc/traefik/conf.d
@@ -21,21 +40,35 @@ traefik_static_conf:
 traefik_dynamic_conf:
   http:
     routers:
+      k8s_api:
+        rule: "Host(`{{ ansible_hostname }}.{{ domain }}`) || Host(`{{ ansible_hostname }}`)"
+        service: k8s_api
+        entryPoints:
+          - kubernetes
+        tls: {}
       api_redirect:
         rule: "Host(`{{ ansible_hostname }}.{{ domain }}`) && (PathPrefix(`/api`) || PathPrefix(`/dashboard`))"
         service: api@internal
         entryPoints:
           - web
         middlewares:
-          - https_redirect
+          - https-redirect
       api:
         rule: "Host(`{{ ansible_hostname }}.{{ domain }}`) && (PathPrefix(`/api`) || PathPrefix(`/dashboard`))"
         service: api@internal
         entryPoints:
           - websecure
         tls: {}
+    services:
+      k8s_api:
+        loadBalancer:
+          servers: "{{ traefik_k8s_apiservers }}"
+          healthCheck:
+            path: /healthz
+            interval: "10s"
+            timeout: "3s"
     middlewares:
-      https_redirect:
+      https-redirect:
         redirectScheme:
           scheme: https
           permanent: true
@@ -43,15 +76,3 @@ traefik_dynamic_conf:
     certificates:
       - certFile: /etc/traefik/certs/kubernetes.pem
         keyFile: /etc/traefik/certs/kubernetes-key.pem
-  # tcp:
-  #   routers:
-  #     Router-1:
-  #       rule: "path(`/k8s`)"
-  #       service: kubernetes
-  #       tls: {}
-  #   services:
-  #     my-service:
-  #       loadBalancer:
-  #         servers:
-  #         - address: "xx.xx.xx.xx:xx"
-  #         - address: "xx.xx.xx.xx:xx"

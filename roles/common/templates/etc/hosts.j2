@@ -6,6 +6,6 @@
 {% for host in groups["all"] | sort %}
 {% set ip = hostvars[host]["ansible_all_ipv4_addresses"] | ipaddr(private_address_cidr) | first %}
 {% if ip %}
-{{ ip }} {{ host }}
+{{ ip }} {{ host }} {{ host }}.{{ domain }}
 {% endif %}
 {% endfor %}

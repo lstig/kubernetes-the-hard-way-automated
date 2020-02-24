@@ -1,12 +1,12 @@
 kube_proxy_image: k8s.gcr.io/kube-proxy
 kube_proxy_version: "{{ kube_version }}"
-kube_proxy_lib_dir: /var/lib/kube-proxy/kube-proxy-config.yaml
+kube_proxy_lib_dir: /var/lib/kube-proxy
 kube_proxy_config_file: "{{ kube_proxy_lib_dir }}/kube-proxy-config.yaml"
 kube_proxy_config:
   kind: KubeProxyConfiguration
   apiVersion: kubeproxy.config.k8s.io/v1alpha1
   clientConnection:
-    kubeconfig: "{{ kube_proxy_lib_dir }}/kube-proxy.kubeconfig"
+    kubeconfig: "{{ kube_proxy_lib_dir }}/kubeconfig"
   mode: "iptables"
   clusterCIDR: "{{ kube_cluster_cidr }}"
 kube_proxy_service_config:

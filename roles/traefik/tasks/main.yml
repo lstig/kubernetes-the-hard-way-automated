@@ -12,6 +12,7 @@
     state: directory
     mode: 0750
   loop:
+    - "{{ traefik_log_dir }}"
     - "{{ traefik_conf_dir }}"
     - "{{ traefik_cert_dir }}"
     - "{{ traefik_dynamic_conf_dir }}"
@@ -23,8 +24,9 @@
     src: "{{ item }}"
     dest: "{{ traefik_cert_dir }}"
   loop:
-    - "{{ certs_dir }}/kubernetes.pem"
-    - "{{ certs_dir }}/kubernetes-key.pem"
+    - "{{ local_certs_dir }}/ca.pem"
+    - "{{ local_certs_dir }}/kubernetes.pem"
+    - "{{ local_certs_dir }}/kubernetes-key.pem"
   tags:
     - pki
 
@@ -35,6 +37,15 @@
   notify:
     - restart traefik
   tags:
+    - traefik_static_config
+    - configuration
+
+- name: Generate list of k8s api servers
+  set_fact:
+    traefik_k8s_apiservers: "{{ traefik_k8s_apiservers + [ {'url': 'https://{}:6443'.format(item) } ] }}"
+  loop: "{{ groups['controllers'] }}"
+  tags:
+    - traefik_dynamic_config
     - configuration
 
 - name: Create traefik dynamic configuration file
@@ -42,6 +53,7 @@
     content: "{{ traefik_dynamic_conf | to_nice_yaml }}"
     dest: "{{ traefik_dynamic_conf_dir }}/dynamic.yaml"
   tags:
+    - traefik_dynamic_config
     - configuration
 
 - name: Create traefik service file

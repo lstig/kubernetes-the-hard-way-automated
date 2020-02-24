@@ -7,6 +7,13 @@ def filter(func):
     return func
 
 @filter
+def get_dict_value(d, *keys):
+    """Safely looks up arbitrarily nested dict keys"""
+    for key in keys:
+        d = d.get(key, None)
+    return d
+
+@filter
 def map_format(*values, pattern):
     """Performs more complex formatting on a list of values"""
     return pattern.format(*values)

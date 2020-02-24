@@ -4,6 +4,7 @@ Description=Traefik - an opensource edge router
 [Service]
 Environment=TRAEFIK_IMAGE={{ traefik_image }}
 Environment=TRAEFIK_VERSION={{ traefik_version }}
+Environment=LOG_DIR={{ traefik_log_dir }}
 Environment=CONF_DIR={{ traefik_conf_dir }}
 Environment=CERT_DIR={{ traefik_cert_dir }}
 Environment=DYNAMIC_CONF_DIR={{ traefik_dynamic_conf_dir }}
@@ -18,6 +19,7 @@ ExecStart=/usr/bin/podman run --conmon-pidfile /%t/%n-pid --cidfile /%t/%n-cid -
   --net=host \
   --volume=${CONF_DIR}/traefik.yaml:/etc/traefik/traefik.yaml \
   --volume=${CERT_DIR}:/etc/traefik/certs \
+  --volume=${LOG_DIR}:/var/log/traefik \
   --volume=${DYNAMIC_CONF_DIR}:/etc/traefik/conf.d \
   ${TRAEFIK_IMAGE}:${TRAEFIK_VERSION} \
   traefik

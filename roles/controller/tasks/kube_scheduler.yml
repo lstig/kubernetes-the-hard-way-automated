@@ -10,29 +10,20 @@
   tags:
     - container
 
-- name: Generate kubeconfig for kube-scheduler
-  shell: |
-    kubectl config set-cluster {{ cluster }} \
-        --certificate-authority=ca.pem \
-        --embed-certs=true \
-        --server=https://127.0.0.1:6443 \
-        --kubeconfig=kube-scheduler.kubeconfig
+- name: Copy kube-scheduler kubeconfig to {{ kube_lib_dir }}
+  copy:
+    src: "{{ local_kubeconfigs_dir }}/kube-scheduler.kubeconfig"
+    dest: "{{ kube_lib_dir }}/kube-scheduler.kubeconfig"
+    mode: 0640
 
-    kubectl config set-credentials {{ clients['kube-scheduler']['attributes']['cn'] }} \
-        --client-certificate=kube-scheduler.pem \
-        --client-key=kube-scheduler-key.pem \
-        --embed-certs=true \
-        --kubeconfig=kube-scheduler.kubeconfig
-
-    kubectl config set-context default \
-        --cluster={{ cluster }} \
-        --user={{ clients['kube-scheduler']['attributes']['cn'] }} \
-        --kubeconfig=kube-scheduler.kubeconfig
-
-    kubectl config use-context default --kubeconfig=kube-scheduler.kubeconfig
-  args:
-    chdir: "{{ kube_lib_dir }}"
-    creates: kube-scheduler.kubeconfig
+- name: Copy kube-scheduler certs to {{ kube_lib_dir }}
+  copy:
+    src: "{{ local_certs_dir }}/{{ item }}"
+    dest: "{{ kube_lib_dir }}"
+    mode: 0640
+  loop:
+    - kube-scheduler.pem
+    - kube-scheduler-key.pem
 
 - name: Create KubeSchedulerConfiguration
   copy:

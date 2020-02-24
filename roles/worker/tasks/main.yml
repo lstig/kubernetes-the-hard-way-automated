@@ -13,7 +13,7 @@
 
 - name: Copy certs to {{ kube_lib_dir }}
   copy:
-    src: "{{ certs_dir }}/{{ item }}"
+    src: "{{ local_certs_dir }}/{{ item }}"
     dest: "{{ kube_lib_dir }}"
     mode: 0640
   loop:

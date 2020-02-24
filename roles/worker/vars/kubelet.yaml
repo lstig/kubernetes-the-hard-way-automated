@@ -26,7 +26,7 @@ kubelet_service_config:
   container-runtime: remote
   container-runtime-endpoint: unix:///var/run/containerd/containerd.sock
   image-pull-progress-deadline: 2m
-  kubeconfig: /var/lib/kubelet/{{ ansible_hostname }}.kubeconfig
+  kubeconfig: "{{ kubelet_lib_dir }}/kubeconfig"
   network-plugin: cni
   register-node: true
   v: 2

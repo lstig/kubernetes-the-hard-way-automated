@@ -1,4 +1,5 @@
 ---
+
 - name: Create kubernetes directories
   file:
     path: "{{ item }}"
@@ -7,7 +8,6 @@
   loop:
     - "{{ kube_lib_dir }}"
     - "{{ kube_etc_dir }}"
-    - "/home/vagrant/.kube"
   tags:
     - configuration
 
@@ -19,3 +19,30 @@
     dest: /usr/local/bin/kubectl
     mode: 0755
     force: "{{ force_kubectl_download | default(false) | ternary('yes', 'no') }}"
+
+- name: Setup bash completion and aliases
+  copy:
+    content: |
+      source <(kubectl completion bash)
+      alias k=kubectl
+      complete -F __start_kubectl k
+    dest: /etc/profile.d/03-k8s.sh
+    mode: 0644
+    owner: root
+    group: root
+
+- name: Create /home/{{ ansible_ssh_user }}/.kube directory
+  file:
+    path: "/home/{{ ansible_ssh_user }}/.kube"
+    state: directory
+    mode: 0750
+    owner: "{{ ansible_ssh_user }}"
+    group: "{{ ansible_ssh_user }}"
+
+- name: Copy admin kubeconfig to /home/{{ ansible_ssh_user }}/.kube/config
+  copy:
+    src: "{{ local_kubeconfigs_dir }}/admin.kubeconfig"
+    dest: "/home/{{ ansible_ssh_user }}/.kube/config"
+    mode: 0600
+    owner: "{{ ansible_ssh_user }}"
+    group: "{{ ansible_ssh_user }}"
