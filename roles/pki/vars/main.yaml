@@ -1,8 +1,6 @@
 ---
-certs_dir: "{{ playbook_dir }}/certs"
-local_vars_dir: "{{ playbook_dir }}/local_vars"
 cert_files:
-  ca_config: "{{ certs_dir }}/ca-config.json"
+  ca_config: "{{ local_dir }}/ca-config.json"
   ca: "{{ local_vars_dir }}/ca.yaml"
   clients: "{{ local_vars_dir }}/clients.yaml"
 encrypt_ca_key: false

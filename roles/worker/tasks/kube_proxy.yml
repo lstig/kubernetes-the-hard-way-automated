@@ -18,36 +18,17 @@
 
 - name: Copy certs to {{ kube_proxy_lib_dir }}
   copy:
-    src: "{{ certs_dir }}/{{ item }}"
-    dest: "{{ kubelet_lib_dir }}"
+    src: "{{ local_certs_dir }}/{{ item }}"
+    dest: "{{ kube_proxy_lib_dir }}"
     mode: 0640
   loop:
     - "kube-proxy.pem"
     - "kube-proxy-key.pem"
 
-- name: Generate kubeconfig for kube-proxy
-  shell: |
-    kubectl config set-cluster {{ cluster }}\
-        --certificate-authority={{ kube_ca_cert }} \
-        --embed-certs=true \
-        --server=https://{{ controller_ips |  first }}:6443 \
-        --kubeconfig=kube-proxy.kubeconfig
-
-    kubectl config set-credentials {{ clients['kube-proxy']['attributes']['cn'] }} \
-        --client-certificate=kube-proxy.pem \
-        --client-key=kube-proxy-key.pem \
-        --embed-certs=true \
-        --kubeconfig=kube-proxy.kubeconfig
-
-    kubectl config set-context default \
-        --cluster={{ cluster }} \
-        --user={{ clients['kube-proxy']['attributes']['cn'] }} \
-        --kubeconfig=kube-proxy.kubeconfig
-
-    kubectl config use-context default --kubeconfig=kube-proxy.kubeconfig
-  args:
-    chdir: "{{ kube_proxy_lib_dir }}"
-    creates: kube-proxy.kubeconfig
+- name: Copy kube-proxy kubeconfig
+  copy:
+    src: "{{ local_kubeconfigs_dir }}/kube-proxy.kubeconfig"
+    dest: "{{ kube_proxy_lib_dir }}/kubeconfig"
 
 - name: Create KubeProxyConfiguration
   copy:

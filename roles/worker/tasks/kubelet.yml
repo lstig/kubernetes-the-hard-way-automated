@@ -19,7 +19,7 @@
 
 - name: Copy certs to {{ kubelet_lib_dir }}
   copy:
-    src: "{{ certs_dir }}/{{ item }}"
+    src: "{{ local_certs_dir }}/{{ item }}"
     dest: "{{ kubelet_lib_dir }}"
     mode: 0640
   loop:
@@ -31,30 +31,10 @@
     content: "{{ kubelet_config | to_nice_yaml(indent=2) }}"
     dest: "{{ kubelet_config_file }}"
 
-## TODO - replace {{ controller_ips |  first }} with loadbalance by traefik
-- name: Generate kubeconfig for kubelet
-  shell: |
-    kubectl config set-cluster {{ cluster }}\
-        --certificate-authority={{ kube_ca_cert }} \
-        --embed-certs=true \
-        --server=https://{{ controller_ips |  first }}:6443 \
-        --kubeconfig={{ ansible_hostname }}.kubeconfig
-
-    kubectl config set-credentials system:node:{{ ansible_hostname }} \
-        --client-certificate={{ ansible_hostname }}.pem \
-        --client-key={{ ansible_hostname }}-key.pem \
-        --embed-certs=true \
-        --kubeconfig={{ ansible_hostname }}.kubeconfig
-
-    kubectl config set-context default \
-        --cluster={{ cluster }}\
-        --user=system:node:{{ ansible_hostname }} \
-        --kubeconfig={{ ansible_hostname }}.kubeconfig
-
-    kubectl config use-context default --kubeconfig={{ ansible_hostname }}.kubeconfig
-  args:
-    chdir: "{{ kubelet_lib_dir }}"
-    creates: "{{ ansible_hostname }}.kubeconfig"
+- name: Copy {{ ansible_hostname }}'s kubeconfig
+  copy:
+    src: "{{ local_kubeconfigs_dir }}/{{ ansible_hostname }}.kubeconfig"
+    dest: "{{ kubelet_lib_dir }}/kubeconfig"
 
 - name: Create kubelet service file
   template:
