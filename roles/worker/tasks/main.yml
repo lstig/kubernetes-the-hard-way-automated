@@ -22,13 +22,15 @@
     - "{{ ansible_hostname }}-key.pem"
 
 - name: Disable swap
-  command: swapoff -a
+  sysctl:
+    name: vm.swappiness
+    value: '0'
+    sysctl_set: yes
 
-- name: Edit /etc/fstab to permanently disable swap
-  replace:
-    path: /etc/fstab
-    regexp: '^([^#].*?\sswap\s+sw\s+.*)$'
-    replace: '# \1'
+- name: Setup pod cidr network routes
+  command: "route add -net {{ kube_cluster_cidr | ipsubnet(kube_pod_cidr_prefix, (item.split('-')[-1] | int)) }} gw {{ hostvars[item]['ansible_all_ipv4_addresses'] | ipaddr(private_address_cidr) | first }}"
+  loop: "{{ groups['workers'] | difference([ansible_hostname]) }}"
+  ignore_errors: yes
 
 - name: Configure containerd
   include_tasks: containerd.yml
