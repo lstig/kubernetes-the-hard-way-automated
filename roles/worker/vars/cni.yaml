@@ -11,7 +11,7 @@ cni_bridge_config:
   ipam:
     type: host-local
     ranges:
-      - [{subnet: "{{ kube_cluster_cidr }}"}]
+      - [{subnet: "{{ kube_pod_cidr }}"}]
     routes: [{dst: 0.0.0.0/0}]
 cni_loopback_config:
   cniVersion: "{{ cni_version }}"

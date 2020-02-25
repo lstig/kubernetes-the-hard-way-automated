@@ -1,4 +1,6 @@
 ---
+kube_pod_cidr_prefix: 24
+kube_pod_cidr: "{{ kube_cluster_cidr | ipsubnet(kube_pod_cidr_prefix, (ansible_hostname.split('-')[-1] | int)) }}"
 containerd_config: |
   [plugins]
     [plugins.cri.containerd]
