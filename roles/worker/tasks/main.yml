@@ -27,11 +27,6 @@
     value: '0'
     sysctl_set: yes
 
-- name: Setup pod cidr network routes
-  command: "route add -net {{ kube_cluster_cidr | ipsubnet(kube_pod_cidr_prefix, (item.split('-')[-1] | int)) }} gw {{ hostvars[item]['ansible_all_ipv4_addresses'] | ipaddr(private_address_cidr) | first }}"
-  loop: "{{ groups['workers'] | difference([ansible_hostname]) }}"
-  ignore_errors: yes
-
 - name: Configure containerd
   include_tasks: containerd.yml
 

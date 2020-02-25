@@ -16,7 +16,7 @@ Vagrant.configure("2") do |config|
   end
 
   LB_MEM = 256
-  WORKER_MEM = 512
+  WORKER_MEM = 1024
   CONTROLLER_MEM = 1024
 
   CONTROLLERS = 3
@@ -46,7 +46,6 @@ Vagrant.configure("2") do |config|
     config.vm.define "controller-#{n}" do |this|
       this.vm.hostname = "controller-#{n}.#{DOMAIN}"
       this.vm.network "private_network", ip: "10.240.0.1#{n}", hostsupdater: "skip"
-      this.vm.network "private_network", ip: "172.16.0.1#{n}"
 
       this.vm.provider "virtualbox" do |vb|
         vb.memory = CONTROLLER_MEM
@@ -54,14 +53,26 @@ Vagrant.configure("2") do |config|
     end
   end
 
+  $routes = <<-'EOF'
+  for i in "$@"; do
+    route add -net 10.200.$i.0/24 gw 10.240.0.2$i
+  done
+  EOF
+
   (0...WORKERS).each do |n|
     config.vm.define "worker-#{n}" do |this|
       this.vm.hostname = "worker-#{n}.#{DOMAIN}"
       this.vm.network "private_network", ip: "10.240.0.2#{n}", hostsupdater: "skip"
-      this.vm.network "private_network", ip: "172.16.0.2#{n}"
 
       this.vm.provider "virtualbox" do |vb|
         vb.memory = WORKER_MEM
+      end
+
+      $a = *(0...WORKERS)
+
+      this.vm.provision "shell", run: "always" do |s|
+        s.inline = $routes
+        s.args   = $a.select {|i| i != n}
       end
 
       if n + 1 == WORKERS
