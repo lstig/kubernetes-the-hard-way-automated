@@ -23,6 +23,8 @@
     content: ""
     dest: "{{ item }}"
     force: no
+  tags:
+    - always
   loop:
     - "{{ cert_files['ca'] }}"
     - "{{ cert_files['clients'] }}"

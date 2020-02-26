@@ -2,6 +2,8 @@
 - name: Load kube-controller-manager variables
   include_vars:
     file: kube_controller_manager.yaml
+  tags:
+    - always
 
 - name: Pull kube-controller-manager container image
   podman_image:
@@ -9,6 +11,7 @@
     tag: "{{ kube_controller_manager_version }}"
   tags:
     - container
+    - download
 
 - name: Copy kube-controller-manager kubeconfig to {{ kube_lib_dir }}
   copy:

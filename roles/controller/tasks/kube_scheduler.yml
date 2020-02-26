@@ -2,6 +2,8 @@
 - name: Load kube-scheduler variables
   include_vars:
     file: kube_scheduler.yaml
+  tags:
+    - always
 
 - name: Pull kube-scheduler container image
   podman_image:
@@ -9,6 +11,7 @@
     tag: "{{ kube_scheduler_version }}"
   tags:
     - container
+    - download
 
 - name: Copy kube-scheduler kubeconfig to {{ kube_lib_dir }}
   copy:

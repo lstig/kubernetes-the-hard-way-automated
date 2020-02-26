@@ -1,0 +1,26 @@
+---
+- hosts: controllers
+  tasks:
+    - name: Deploy CoreDNS
+      k8s:
+        state: present
+        definition: "{{ lookup('template', './manifests/coredns.yaml') }}"
+      run_once: true
+
+    - name: Deploy dashboard
+      k8s:
+        state: present
+        definition: "{{ lookup('template', './manifests/dashboard.yaml') }}"
+      run_once: true
+
+    - name: Deploy traefik CRD
+      k8s:
+        state: present
+        definition: "{{ lookup('template', './manifests/traefik-crd.yaml') }}"
+      run_once: true
+
+    - name: Deploy traefik RBAC config
+      k8s:
+        state: present
+        definition: "{{ lookup('template', './manifests/traefik-rbac.yaml') }}"
+      run_once: true

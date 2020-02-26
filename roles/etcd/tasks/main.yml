@@ -5,6 +5,7 @@
     tag: "{{ etcd_version }}"
   tags:
     - container
+    - download
 
 - name: Ensure etcd host directories exist
   file:
@@ -19,8 +20,8 @@
 
 - name: Add ca cert
   copy:
-    content: "{{ etcd_ca_cert }}"
-    dest: "{{ etcd_cert_dir }}/ca.pem"
+    src: "{{ etcd_ca_cert }}"
+    dest: "{{ etcd_cert_dir }}"
     mode: 0640
   tags:
     - configuration
@@ -28,8 +29,8 @@
 
 - name: Add etcd tls cert
   copy:
-    content: "{{ etcd_tls_cert }}"
-    dest: "{{ etcd_cert_dir }}/{{ etcd_cert_name }}.pem"
+    src: "{{ etcd_tls_cert }}"
+    dest: "{{ etcd_cert_dir }}"
     mode: 0640
   tags:
     - configuration
@@ -37,8 +38,8 @@
 
 - name: Add etcd tls key
   copy:
-    content: "{{ etcd_tls_key }}"
-    dest: "{{ etcd_cert_dir }}/{{ etcd_cert_name }}-key.pem"
+    src: "{{ etcd_tls_key }}"
+    dest: "{{ etcd_cert_dir }}"
     mode: 0640
   tags:
     - configuration

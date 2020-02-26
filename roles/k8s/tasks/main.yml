@@ -19,6 +19,8 @@
     dest: /usr/local/bin/kubectl
     mode: 0755
     force: "{{ force_kubectl_download | default(false) | ternary('yes', 'no') }}"
+  tags:
+    - download
 
 - name: Setup bash completion and aliases
   copy:

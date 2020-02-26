@@ -47,6 +47,7 @@ clients:
         groups['loadbalancers'] +
         groups['controllers'] +
         k8s_hostnames +
+        controller_ips +
         [ loadbalancer ]) | unique | list
       }}
 kubeconfigs:
