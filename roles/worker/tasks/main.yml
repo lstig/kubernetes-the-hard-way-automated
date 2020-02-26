@@ -10,6 +10,7 @@
     - containerd
   tags:
     - package
+    - download
 
 - name: Copy certs to {{ kube_lib_dir }}
   copy:
@@ -35,6 +36,10 @@
 
 - name: Setup kubelet
   include_tasks: kubelet.yml
+  tags:
+    - download
 
 - name: Setup kube-proxy
   include_tasks: kube_proxy.yml
+  tags:
+    - download

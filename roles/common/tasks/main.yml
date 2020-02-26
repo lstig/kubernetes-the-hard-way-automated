@@ -15,6 +15,7 @@
     state: present
   tags:
     - package
+    - download
 
 - name: Add podman repo
   apt_repository:
@@ -22,6 +23,7 @@
     filename: devel:kubic:libcontainers:stable.list
   tags:
     - package
+    - download
 
 - name: Upgrade all packages to the latest version
   apt:
@@ -29,6 +31,7 @@
     state: latest
   tags:
     - package
+    - download
 
 - name: Install podman and pip3
   apt:
@@ -39,9 +42,11 @@
     - python3-pip
   tags:
     - package
+    - download
 
 - name: Install openshift python module
   pip:
     name: openshift
   tags:
     - package
+    - download

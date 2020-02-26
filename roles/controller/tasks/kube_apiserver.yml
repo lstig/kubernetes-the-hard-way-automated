@@ -2,6 +2,8 @@
 - name: Load kube-apiserver variables
   include_vars:
     file: kube_apiserver.yaml
+  tags:
+    - always
 
 - name: Pull kube-apiserver container image
   podman_image:
@@ -9,6 +11,7 @@
     tag: "{{ kube_apiserver_version }}"
   tags:
     - container
+    - download
 
 - name: Create kube-apiserver service file
   template:

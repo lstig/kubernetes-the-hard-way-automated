@@ -31,16 +31,19 @@
   include_tasks: kube_apiserver.yml
   tags:
     - kube_apiserver
+    - download
 
 - name: Setup kube-controller-manager
   include_tasks: kube_controller_manager.yml
   tags:
     - kube_controller_manager
+    - download
 
 - name: Setup kube-scheduler
   include_tasks: kube_scheduler.yml
   tags:
     - kube_scheduler
+    - download
 
 - name: Create ClusterRole to allow kubelet api access from apiserver
   k8s:

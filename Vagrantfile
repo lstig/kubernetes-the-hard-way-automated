@@ -24,11 +24,12 @@ Vagrant.configure("2") do |config|
 
   DOMAIN = "example.com"
 
-  ANSIBLE_PLAYBOOK = "vagrant.yml"
-  ANSIBLE_GROUPS = {
-    "controllers" => [ "controller-[0:#{CONTROLLERS - 1}]" ],
-    "workers" => [ "worker-[0:#{WORKERS - 1}]" ],
-    "k8s:children" => [ "controllers", "workers" ],
+  ANSIBLE_PLAYBOOK = "site.yml"
+  ANSIBLE_TAGS     = [ "download" ] # run all tasks related to downloading required artifacts
+  ANSIBLE_GROUPS   = {
+    "controllers"   => [ "controller-[0:#{CONTROLLERS - 1}]" ],
+    "workers"       => [ "worker-[0:#{WORKERS - 1}]" ],
+    "k8s:children"  => [ "controllers", "workers" ],
     "loadbalancers" => [ "lb-0" ]
   }
 
@@ -68,18 +69,19 @@ Vagrant.configure("2") do |config|
         vb.memory = WORKER_MEM
       end
 
+      # This configures routes between ndoes for pod networking
       $a = *(0...WORKERS)
-
       this.vm.provision "shell", run: "always" do |s|
         s.inline = $routes
         s.args   = $a.select {|i| i != n}
       end
 
       if n + 1 == WORKERS
-        this.vm.provision "ansible" do |ansible|
-          ansible.limit = "all,localhost"
-          ansible.playbook = ANSIBLE_PLAYBOOK
-          ansible.groups = ANSIBLE_GROUPS
+        this.vm.provision "ansible" do |a|
+          a.limit    = "all,localhost"
+          a.playbook = ANSIBLE_PLAYBOOK
+          a.groups   = ANSIBLE_GROUPS
+          a.tags     = ANSIBLE_TAGS
         end
       end
     end

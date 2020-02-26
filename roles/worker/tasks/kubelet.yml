@@ -8,12 +8,16 @@
     dest: /usr/local/bin/kubelet
     mode: 0755
     force: "{{ force_kubelet_download | default(false) | ternary('yes', 'no') }}"
+  tags:
+    - download
 
 - name: Create kubeconfig and kubelet lib directory
   file:
     path: "{{ item }}"
     state: directory
     mode: 0750
+  tags:
+    - always
   loop:
     - "{{ kubelet_lib_dir }}"
 

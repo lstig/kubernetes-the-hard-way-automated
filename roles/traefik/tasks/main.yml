@@ -5,6 +5,7 @@
     tag: "{{ traefik_version }}"
   tags:
     - container
+    - download
 
 - name: Ensure traefik host directories exist
   file:

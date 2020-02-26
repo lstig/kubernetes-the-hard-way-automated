@@ -2,6 +2,8 @@
 - name: Load kube-proxy variables
   include_vars:
     file: kube_proxy.yaml
+  tags:
+    - always
 
 - name: Pull kube-proxy container image
   podman_image:
@@ -9,6 +11,7 @@
     tag: "{{ kube_proxy_version }}"
   tags:
     - container
+    - download
 
 - name: Create kube-proxy lib dir {{ kube_proxy_lib_dir }}
   file:

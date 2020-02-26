@@ -7,6 +7,6 @@ etcd_cert_dir: "{{ etcd_conf_dir }}/certs"
 etcd_cluster_token: etcd-cluster-0
 etcd_cluster_state: new
 etcd_cert_name: kubernetes
-etcd_tls_cert: "{{ hostvars['localhost']['client_certs'][etcd_cert_name]['cert'] }}"
-etcd_tls_key: "{{ hostvars['localhost']['client_certs'][etcd_cert_name]['key'] }}"
-etcd_ca_cert: "{{ hostvars['localhost']['ca']['cert'] }}"
+etcd_tls_cert: "{{ local_certs_dir }}/{{ etcd_cert_name }}.pem"
+etcd_tls_key: "{{ local_certs_dir }}/{{ etcd_cert_name }}-key.pem"
+etcd_ca_cert: "{{ local_certs_dir }}/ca.pem"
