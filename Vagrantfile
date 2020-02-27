@@ -33,10 +33,24 @@ Vagrant.configure("2") do |config|
     "loadbalancers" => [ "lb-0" ]
   }
 
+  $routes = <<-'EOF'
+  for i in "$@"; do
+    route add -net 10.200.$i.0/24 gw 10.240.0.2$i
+  done
+  EOF
+
   config.vm.define "lb-0" do |this|
     this.vm.hostname = "lb-0.#{DOMAIN}"
     this.vm.network "private_network", ip: "10.240.0.2", hostsupdater: "skip"
     this.vm.network "private_network", ip: "172.16.0.2"
+    this.hostsupdater.aliases = ["k8s.example.com"]
+
+      # This configures routes between ndoes for pod networking
+    $a = *(0...WORKERS)
+    this.vm.provision "shell", run: "always" do |s|
+      s.inline = $routes
+      s.args   = $a
+    end
 
     this.vm.provider "virtualbox" do |vb|
       vb.memory = LB_MEM
@@ -53,12 +67,6 @@ Vagrant.configure("2") do |config|
       end
     end
   end
-
-  $routes = <<-'EOF'
-  for i in "$@"; do
-    route add -net 10.200.$i.0/24 gw 10.240.0.2$i
-  done
-  EOF
 
   (0...WORKERS).each do |n|
     config.vm.define "worker-#{n}" do |this|
