@@ -54,4 +54,7 @@ kubectl apply -f manifests/dashboard.yaml
 
 # create IngressRoutes
 kubectl apply -f manifests/ingress_routes.yaml
+
+# get dashboard token
+kubectl -n kubernetes-dashboard describe secret $(kubectl -n kubernetes-dashboard get secret | (grep kubernetes-dashboard-token || echo "$_") | awk '{print $1}') | grep token: | awk '{print $2}'
 ```
