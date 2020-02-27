@@ -21,7 +21,8 @@ Testing
 ---
 
 ```shell
-# create kubeconfig for accessing the kubernetes cluster from your host
+# create kubeconfig for accessing the kubernetes cluster from
+# your host and deploy required cluster resources
 ansible-playbook k8s.yaml
 ```
 
