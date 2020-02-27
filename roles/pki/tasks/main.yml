@@ -12,6 +12,8 @@
     - "{{ local_vars_dir }}"
     - "{{ local_certs_dir }}"
     - "{{ local_kubeconfigs_dir }}"
+  tags:
+    - always
 
 - name: Create CA config file
   copy:
