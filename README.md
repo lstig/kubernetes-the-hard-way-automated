@@ -34,15 +34,14 @@ vagrant up
 
 # Run playbooks to bootstrap the cluster and initial services
 ansible-playbook site.yaml
+
+# create kubeconfig for accessing the kubernetes cluster from
+# your host and deploy required cluster resources
 ansible-playbook k8s.yaml
 
 # set KUBECONFIG environment so you don't have to pass kubeconfig flag to kubectl
 KUBECONFIG=local/admin.kubeconfig
 NAMESPACE=kube-system
-
-# create kubeconfig for accessing the kubernetes cluster from
-# your host and deploy required cluster resources
-ansible-playbook k8s.yaml
 
 # fetch service account token and update traefik configuration
 TRAEFIK_TOKEN=$(kubectl -n ${NAMESPACE} describe secret $(kubectl -n ${NAMESPACE} get secret | (grep traefik-ingress-controller || echo "$_") | awk '{print $1}') | grep token: | awk '{print $2}')
