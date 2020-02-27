@@ -56,15 +56,3 @@
             name: traefik-ingress-controller
             namespace: kube-system
       run_once: true
-
-    - name: Deploy dashboard
-      k8s:
-        state: present
-        definition: "{{ lookup('template', './manifests/whoami.yaml') }}"
-      run_once: true
-
-    - name: Deploy whoami demo application
-      k8s:
-        state: present
-        definition: "{{ lookup('template', './manifests/dashboard.yaml') }}"
-      run_once: true
