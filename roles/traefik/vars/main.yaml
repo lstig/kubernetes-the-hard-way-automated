@@ -36,7 +36,7 @@ traefik_static_conf:
       directory: /etc/traefik/conf.d
       watch: true
     kubernetesCRD:
-      endpoint: "https://controller-0:6443"
+      endpoint: "https://controller-0:6443" # TODO change to load balancer IP
       certAuthFilePath: "{{ traefik_cert_dir }}/ca.pem"
       token: "{{ traefik_k8s_token | default('') }}"
   api:
