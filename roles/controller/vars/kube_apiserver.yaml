@@ -16,6 +16,8 @@ kube_apiserver_admission_plugins:
   - ResourceQuota
 kube_apiserver_runtime_config:
   - api/all=true
+  - settings.k8s.io/v1alpha1=true
+  - apiextensions.k8s.io/v1beta1
 kube_apiserver_config:
   advertise-address: "{{ kube_node_ipaddr }}"
   allow-privileged: true
@@ -38,6 +40,7 @@ kube_apiserver_config:
   kubelet-client-certificate: "{{ kube_client_cert }}"
   kubelet-client-key: "{{ kube_client_key }}"
   kubelet-https: true
+  min-request-timeout: 3600
   runtime-config: "{{ kube_apiserver_runtime_config | join(',') }}"
   secure-port: "{{ kube_apiserver_secure_port }}"
   service-account-key-file: "{{ kube_service_account_key }}"

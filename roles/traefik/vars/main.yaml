@@ -1,7 +1,7 @@
 ---
 traefik_image: registry.hub.docker.com/library/traefik
 traefik_version: v2.1.4
-traefik_log_level: INFO
+traefik_log_level: DEBUG
 traefik_k8s_apiservers: []
 traefik_log_dir: /var/log/traefik
 traefik_conf_dir: /etc/traefik
@@ -35,6 +35,10 @@ traefik_static_conf:
     file:
       directory: /etc/traefik/conf.d
       watch: true
+    kubernetesCRD:
+      endpoint: "https://controller-0:6443"
+      certAuthFilePath: "{{ traefik_cert_dir }}/ca.pem"
+      token: "{{ traefik_k8s_token | default('') }}"
   api:
     dashboard: true
 traefik_dynamic_conf:

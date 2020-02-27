@@ -38,7 +38,8 @@ metadata:
   namespace: kubernetes-dashboard
 spec:
   ports:
-    - port: 443
+    - name: https
+      port: 443
       targetPort: 8443
   selector:
     k8s-app: kubernetes-dashboard
@@ -190,7 +191,8 @@ spec:
           image: kubernetesui/dashboard:v2.0.0-rc5
           imagePullPolicy: Always
           ports:
-            - containerPort: 8443
+            - name: https
+              containerPort: 8443
               protocol: TCP
           args:
             - --auto-generate-certificates
@@ -300,3 +302,22 @@ spec:
       volumes:
         - name: tmp-volume
           emptyDir: {}
+
+---
+
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: kubernetes-dashboard
+  namespace: kubernetes-dashboard
+spec:
+  entryPoints:
+    - websecure
+  routes:
+  - match: Host(`lb-0.example.com`) && PathPrefix(`/kubernetes-dashboard`)
+    kind: Rule
+    services:
+    - name: kubernetes-dashboard
+      port: 443
+      scheme: https
+  tls: {}
