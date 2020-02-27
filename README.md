@@ -40,11 +40,11 @@ ansible-playbook site.yaml
 ansible-playbook k8s.yaml
 
 # set KUBECONFIG environment so you don't have to pass kubeconfig flag to kubectl
-KUBECONFIG=local/admin.kubeconfig
-NAMESPACE=kube-system
+export KUBECONFIG=$(pwd)/local/admin.kubeconfig
+export NAMESPACE=kube-system
 
 # fetch service account token and update traefik configuration
-TRAEFIK_TOKEN=$(kubectl -n ${NAMESPACE} describe secret $(kubectl -n ${NAMESPACE} get secret | (grep traefik-ingress-controller || echo "$_") | awk '{print $1}') | grep token: | awk '{print $2}')
+export TRAEFIK_TOKEN=$(kubectl -n ${NAMESPACE} describe secret $(kubectl -n ${NAMESPACE} get secret | (grep traefik-ingress-controller || echo "$_") | awk '{print $1}') | grep token: | awk '{print $2}')
 
 ansible-playbook site.yml --tags traefik_static_config,traefik_dynamic_config -e traefik_k8s_token=${TRAEFIK_TOKEN}
 
