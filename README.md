@@ -10,13 +10,13 @@ One of the hardest parts of setting up kubernetes from scratch is the sheer numb
 Requirements
 ---
 
-These instructions have been tested on MacOS with `python3.6` but should work on other systems as well. It is assumed the the following tools are already installed ()
+These instructions have been tested on MacOS with `python3.6` but should work on other systems as well. It is assumed the following tools are already installed and available in your system's `PATH`:
 
 * Vagrant - https://www.vagrantup.com/
 * VirtualBox - https://www.virtualbox.org/
 * Ansible - https://www.ansible.com/
 * cfssl - https://cfssl.org/
-* kubectl - https://kubernetes.io/docs/tasks/tools/install-kubectl/
+* kubectl (v1.17.3) - https://kubernetes.io/docs/tasks/tools/install-kubectl/
 
 > See `requirements.txt` for required python libraries
 
