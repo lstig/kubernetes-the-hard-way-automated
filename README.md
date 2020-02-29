@@ -23,10 +23,18 @@ These instructions have been tested on MacOS with `python3.6` but should work on
 What's deployed?
 ---
 
+|App|URL|
+|---|---|
+|Traefik Dashboard|https://lb-0.example.com/dashboard/|
+|whomai|https://lb-0.example.com/whoami|
+|Kubernetes Dashboard|https://k8s.example.com|
 
+![Cluster Diagram](img/diagram.png)
 
 Setup
 ---
+
+Vagrant requires the `vagrant-hostupdater` plugin to automatically manage entries in your `/etc/hosts` file for `lb-0.example.com` and `k8s.example.com`. The first time you run `vagrant up` it will ask to install the plugin if it hasn't already been installed.
 
 ```shell
 # Install requirements (virtualenv recommended)
