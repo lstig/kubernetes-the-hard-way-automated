@@ -26,7 +26,7 @@ What's deployed?
 |App|URL|
 |---|---|
 |Traefik Dashboard|https://lb-0.example.com/dashboard/|
-|whomai|https://lb-0.example.com/whoami|
+|whoami|https://lb-0.example.com/whoami|
 |Kubernetes Dashboard|https://k8s.example.com|
 
 ![Cluster Diagram](img/diagram.png)
