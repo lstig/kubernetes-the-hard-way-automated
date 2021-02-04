@@ -46,11 +46,11 @@ pip install -r requirements.txt
 vagrant up
 
 # Run playbooks to bootstrap the cluster and initial services
-ansible-playbook site.yaml
+ansible-playbook site.yml
 
 # create kubeconfig for accessing the kubernetes cluster from
 # your host and deploy required cluster resources
-ansible-playbook k8s.yaml
+ansible-playbook k8s.yml
 
 # set KUBECONFIG environment so you don't have to pass kubeconfig flag to kubectl
 export KUBECONFIG=$(pwd)/local/admin.kubeconfig
