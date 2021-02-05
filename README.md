@@ -41,6 +41,9 @@ Vagrant requires the `vagrant-hostupdater` plugin to automatically manage entrie
 pip install --upgrade pip
 pip install -r requirements.txt
 
+# Copy the example settings file and adjust to your needs
+cp settings.example.rb settings.rb
+
 # Setup local virtual machines
 # NOTE: made need to run twice if this is the first time
 vagrant up
