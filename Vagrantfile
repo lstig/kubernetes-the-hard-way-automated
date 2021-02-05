@@ -2,11 +2,13 @@
 # vi: set ft=ruby :
 
 require 'erb'
+require 'yaml'
 require 'ipaddr'
-require "./settings"
 
-$internal_net = IPAddr.new INTERNAL_NET
-$external_net = IPAddr.new EXTERNAL_NET
+C = YAML.load(File.read("settings.yaml"))
+
+$internal_net = IPAddr.new C['private_address_cidr']
+$external_net = IPAddr.new C['public_address_cidr']
 
 def next_ip(net)
   case net
@@ -36,8 +38,8 @@ Vagrant.configure("2") do |config|
   ANSIBLE_PLAYBOOK = "site.yml"
   ANSIBLE_TAGS     = [ "download" ] # run all tasks related to downloading required artifacts
   ANSIBLE_GROUPS   = {
-    "controllers"   => [ "controller-[1:#{CONTROLLERS}]" ],
-    "workers"       => [ "worker-[1:#{WORKERS}]" ],
+    "controllers"   => [ "controller-[1:#{C['controllers']}]" ],
+    "workers"       => [ "worker-[1:#{C['workers']}]" ],
     "k8s:children"  => [ "controllers", "workers" ],
     "loadbalancers" => [ "lb-0" ]
   }
@@ -45,70 +47,41 @@ Vagrant.configure("2") do |config|
   $lb_external_ip = next_ip("external")
   $lb_internal_ip = next_ip("internal")
 
-  $controller_ips = (0...CONTROLLERS).map { |i| next_ip("internal") }
-  $worker_ips = (0...WORKERS).map { |i| next_ip("internal") }
+  $controller_ips = (1..C['controllers']).map { |i| next_ip("internal") }
+  $worker_ips = (1..C['workers']).map { |i| next_ip("internal") }
 
   config.vm.define "lb-0" do |this|
-    this.vm.hostname = "lb-0.#{DOMAIN}"
+    this.vm.hostname = "lb-0.#{C['domain']}"
     this.vm.network "private_network", ip: "#{$lb_internal_ip}", hostsupdater: "skip"
     this.vm.network "private_network", ip: "#{$lb_external_ip}"
     this.hostsupdater.aliases = ["k8s.example.com"]
 
-    $template = <<-EOF
-      <% $worker_ips.each_with_index do |ip, i| %>
-      route add -net 10.200.<%= i + 1 %>.0/24 gw <%= ip %>
-      <% end %>
-    EOF
-
-    $routes = ERB.new($template.gsub(/^  /, ''), 0, "%<>")
-
-    # This configures routes between nodes for pod networking
-    this.vm.provision "shell", run: "always" do |s|
-      s.inline = $routes.result(binding)
-    end
-
     this.vm.provider "virtualbox" do |vb|
-      vb.memory = LB_MEM
+      vb.memory = C['memory']['loadbalancer']
     end
   end
 
-  (0...CONTROLLERS).each do |n|
-    config.vm.define "controller-#{n + 1}" do |this|
-      this.vm.hostname = "controller-#{n + 1}.#{DOMAIN}"
-      this.vm.network "private_network", ip: "#{$controller_ips[n]}", hostsupdater: "skip"
+  (1..C['controllers']).each do |n|
+    config.vm.define "controller-#{n}" do |this|
+      this.vm.hostname = "controller-#{n}.#{C['domain']}"
+      this.vm.network "private_network", ip: "#{$controller_ips[n - 1]}", hostsupdater: "skip"
 
       this.vm.provider "virtualbox" do |vb|
-        vb.memory = CONTROLLER_MEM
+        vb.memory = C['memory']['controller']
       end
     end
   end
 
-  (0...WORKERS).each do |n|
-    config.vm.define "worker-#{n + 1}" do |this|
-      this.vm.hostname = "worker-#{n + 1}.#{DOMAIN}"
-      this.vm.network "private_network", ip: "#{$worker_ips[n]}", hostsupdater: "skip"
+  (1..C['workers']).each do |n|
+    config.vm.define "worker-#{n}" do |this|
+      this.vm.hostname = "worker-#{n}.#{C['domain']}"
+      this.vm.network "private_network", ip: "#{$worker_ips[n - 1]}", hostsupdater: "skip"
 
       this.vm.provider "virtualbox" do |vb|
-        vb.memory = WORKER_MEM
+        vb.memory = C['memory']['worker']
       end
 
-      # This templates creates routes to all other worker nodes
-      $template = <<-EOF
-        <% $worker_ips.each_with_index do |ip, i| %>
-        <% if ip != $worker_ips[n] %>
-        route add -net 10.200.<%= i + 1 %>.0/24 gw <%= ip %>
-        <% end %>
-        <% end %>
-      EOF
-
-      $routes = ERB.new($template.gsub(/^  /, ''), 0, "%<>")
-
-      # This configures routes between ndoes for pod networking
-      this.vm.provision "shell", run: "always" do |s|
-        s.inline = $routes.result(binding)
-      end
-
-      if n + 1 == WORKERS
+      if n == C['workers']
         this.vm.provision "ansible" do |a|
           a.limit    = "all,localhost"
           a.playbook = ANSIBLE_PLAYBOOK

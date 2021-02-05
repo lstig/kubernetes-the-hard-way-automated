@@ -4,7 +4,7 @@
 # Project Specific
 local/*
 !local/.gitkeep
-settings.rb
+settings.yaml
 
 # Vagrant stuff
 acceptance_config.yml
