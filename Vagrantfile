@@ -41,7 +41,7 @@ Vagrant.configure("2") do |config|
     "controllers"   => [ "controller-[1:#{C['controllers']}]" ],
     "workers"       => [ "worker-[1:#{C['workers']}]" ],
     "k8s:children"  => [ "controllers", "workers" ],
-    "loadbalancers" => [ "lb-0" ]
+    "loadbalancers" => [ "lb" ]
   }
 
   $lb_external_ip = next_ip("external")
@@ -50,8 +50,8 @@ Vagrant.configure("2") do |config|
   $controller_ips = (1..C['controllers']).map { |i| next_ip("internal") }
   $worker_ips = (1..C['workers']).map { |i| next_ip("internal") }
 
-  config.vm.define "lb-0" do |this|
-    this.vm.hostname = "lb-0.#{C['domain']}"
+  config.vm.define "lb" do |this|
+    this.vm.hostname = "lb.#{C['domain']}"
     this.vm.network "private_network", ip: "#{$lb_internal_ip}", hostsupdater: "skip"
     this.vm.network "private_network", ip: "#{$lb_external_ip}"
     this.hostsupdater.aliases = ["k8s.example.com"]

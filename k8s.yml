@@ -8,7 +8,7 @@
       kubectl config set-cluster {{ k8s_cluster }} \
           --certificate-authority={{ local_certs_dir }}/ca.pem \
           --embed-certs=true \
-          --server=https://lb-0.example.com:6443 \
+          --server=https://{{ loadbalancer }}:6443 \
           --kubeconfig=admin.kubeconfig
 
       kubectl config set-credentials admin \
