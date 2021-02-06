@@ -1,4 +1,32 @@
 ---
+- set_fact:
+    internal_interface: "{{ private_address_cidr | network_in_network(lookup('vars', 'ansible_' + item).ipv4.address) | ternary(item, internal_interface | default('')) }}"
+  loop: "{{ ansible_interfaces }}"
+
+- set_fact:
+    routes: "{{ routes | default([]) | union([ {'to': kube_cluster_cidr | ipsubnet(24, item.split('-')[-1] | int), 'via': hostvars[item]['ansible_all_ipv4_addresses'] | reduce_on_network(private_address_cidr) |  first } ]) }}"
+  loop: "{{ groups['workers'] }}"
+
+- set_fact:
+    netplan:
+      network:
+        version: 2
+        renderer: networkd
+        ethernets: "{{ { internal_interface: { 'routes': routes } } }}"
+
+- name: Create static routes for pod networking
+  copy:
+    content: "{{ netplan | to_nice_yaml(indent=2) }}"
+    dest: /etc/netplan/50-pod-network.yaml
+    owner: root
+    group: root
+    mode: '0644'
+  notify:
+    - update netplan
+
+- name: Flush handlers
+  meta: flush_handlers
+
 - name: Pull traefik container image
   podman_image:
     name: "{{ traefik_image }}"

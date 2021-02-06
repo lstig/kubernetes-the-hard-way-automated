@@ -19,3 +19,8 @@
   listen:
     - update traefik service
     - restart traefik
+
+- name: Apply netplan network configuration
+  command: netplan apply
+  listen:
+    - update netplan

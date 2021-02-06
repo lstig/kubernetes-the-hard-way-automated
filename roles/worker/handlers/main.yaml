@@ -1,0 +1,4 @@
+- name: Apply netplan network configuration
+  command: netplan apply
+  listen:
+    - update netplan

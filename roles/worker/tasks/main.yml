@@ -28,6 +28,9 @@
     value: '0'
     sysctl_set: yes
 
+- name: Configure static routes
+  include_tasks: networking.yml
+
 - name: Configure containerd
   include_tasks: containerd.yml
 
