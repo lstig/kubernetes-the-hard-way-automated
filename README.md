@@ -25,8 +25,8 @@ What's deployed?
 
 |App|URL|
 |---|---|
-|Traefik Dashboard|https://lb-0.example.com/dashboard/|
-|whoami|https://lb-0.example.com/whoami|
+|Traefik Dashboard|https://lb.example.com/dashboard/|
+|whoami|https://lb.example.com/whoami|
 |Kubernetes Dashboard|https://k8s.example.com|
 
 ![Cluster Diagram](img/diagram.png)
@@ -34,7 +34,7 @@ What's deployed?
 Setup
 ---
 
-Vagrant requires the `vagrant-hostupdater` plugin to automatically manage entries in your `/etc/hosts` file for `lb-0.example.com` and `k8s.example.com`. The first time you run `vagrant up` it will ask to install the plugin if it hasn't already been installed.
+Vagrant requires the `vagrant-hostupdater` plugin to automatically manage entries in your `/etc/hosts` file for `lb.example.com` and `k8s.example.com`. The first time you run `vagrant up` it will ask to install the plugin if it hasn't already been installed.
 
 ```shell
 # Install requirements (virtualenv recommended)
