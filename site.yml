@@ -1,5 +1,7 @@
 ---
 - hosts: localhost
+  vars_files:
+  - settings.yaml
   pre_tasks:
     - name: gather facts from all servers
       setup:
@@ -14,11 +16,15 @@
     - init
 
 - hosts: all
+  vars_files:
+  - settings.yaml
   become: yes
   roles:
     - common
 
 - hosts: controllers
+  vars_files:
+  - settings.yaml
   become: yes
   roles:
     - etcd
@@ -27,6 +33,8 @@
     - control
 
 - hosts: loadbalancers
+  vars_files:
+  - settings.yaml
   become: yes
   roles:
     - traefik
@@ -35,6 +43,8 @@
     - loadbalancers
 
 - hosts: controllers
+  vars_files:
+  - settings.yaml
   become: yes
   roles:
     - controller
@@ -42,6 +52,8 @@
     - controller
 
 - hosts: workers
+  vars_files:
+  - settings.yaml
   become: yes
   roles:
     - worker

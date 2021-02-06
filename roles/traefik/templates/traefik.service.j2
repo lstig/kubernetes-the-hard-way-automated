@@ -2,6 +2,7 @@
 Description=Traefik - an opensource edge router
 
 [Service]
+Environment=PODMAN_SYSTEMD_UNIT=%n
 Environment=TRAEFIK_IMAGE={{ traefik_image }}
 Environment=TRAEFIK_VERSION={{ traefik_version }}
 Environment=LOG_DIR={{ traefik_log_dir }}
@@ -11,22 +12,24 @@ Environment=DYNAMIC_CONF_DIR={{ traefik_dynamic_conf_dir }}
 
 Restart=on-failure
 RestartSec=5
-ExecStartPre=/bin/rm -f /%t/%n-pid /%t/%n-cid
-ExecStart=/usr/bin/podman run --conmon-pidfile /%t/%n-pid --cidfile /%t/%n-cid -d \
+ExecStartPre=/bin/rm -f %t/traefik.pid %t/traefik.ctr-id
+ExecStart=/usr/bin/podman run --conmon-pidfile %t/traefik.pid --cidfile %t/traefik.ctr-id --cgroups=no-conmon -d \
   -p 80:80 \
   -p 8080:8080 \
   -p 443:443 \
   --net=host \
+  --name=traefik \
   --volume=${CONF_DIR}/traefik.yaml:/etc/traefik/traefik.yaml \
   --volume=${CERT_DIR}:/etc/traefik/certs \
   --volume=${LOG_DIR}:/var/log/traefik \
   --volume=${DYNAMIC_CONF_DIR}:/etc/traefik/conf.d \
   ${TRAEFIK_IMAGE}:${TRAEFIK_VERSION} \
   traefik
-ExecStop=/bin/sh -c "/usr/bin/podman rm -f `cat /%t/%n-cid`"
+ExecStop=/usr/bin/podman stop --ignore --cidfile %t/traefik.ctr-id -t 10
+ExecStopPost=/usr/bin/podman rm --ignore -f --cidfile %t/traefik.ctr-id
+PIDFile=%t/traefik.pid
 KillMode=none
 Type=forking
-PIDFile=/%t/%n-pid
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=multi-user.target default.target

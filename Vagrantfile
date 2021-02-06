@@ -8,7 +8,9 @@ require 'ipaddr'
 C = YAML.load(File.read("settings.yaml"))
 
 $internal_net = IPAddr.new C['private_address_cidr']
+$internal_net = $internal_net.succ # burn off the first ip ending in .1
 $external_net = IPAddr.new C['public_address_cidr']
+$external_net = $external_net.succ # burn off the first ip ending in .1
 
 def next_ip(net)
   case net

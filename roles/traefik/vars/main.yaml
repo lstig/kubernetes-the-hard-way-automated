@@ -1,6 +1,6 @@
 ---
-traefik_image: registry.hub.docker.com/library/traefik
-traefik_version: v2.1.4
+traefik_image: docker.io/library/traefik
+traefik_version: v2.4.2
 traefik_log_level: DEBUG
 traefik_k8s_apiservers: []
 traefik_log_dir: /var/log/traefik
@@ -36,7 +36,7 @@ traefik_static_conf:
       directory: /etc/traefik/conf.d
       watch: true
     kubernetesCRD:
-      endpoint: "https://controller-0:6443" # TODO change to load balancer IP
+      endpoint: "https://{{ groups['controllers'] | first }}:6443" # TODO change to load balancer IP
       certAuthFilePath: "{{ traefik_cert_dir }}/ca.pem"
       token: "{{ traefik_k8s_token | default('') }}"
   api:
@@ -44,38 +44,29 @@ traefik_static_conf:
 traefik_dynamic_conf:
   tcp:
     routers:
-      k8s_api:
+      k8s:
         rule: "HostSNI(`{{ ansible_hostname }}.{{ domain }}`) || HostSNI(`{{ ansible_hostname }}`)"
-        service: k8s_api
+        service: k8s
         entryPoints:
           - kubernetes
         tls:
           passthrough: true
     services:
-      k8s_api:
+      k8s:
         loadBalancer:
           servers: "{{ traefik_k8s_apiservers }}"
   http:
     routers:
-      api_redirect:
-        rule: "Host(`{{ ansible_hostname }}.{{ domain }}`) && (PathPrefix(`/api`) || PathPrefix(`/dashboard`))"
+      dashboard:
+        rule: Host(`{{ ansible_hostname }}.{{ domain }}`) && (PathPrefix(`/api`) || PathPrefix(`/dashboard`))
         service: api@internal
-        entryPoints:
-          - web
-        middlewares:
-          - https-redirect
-      api:
-        rule: "Host(`{{ ansible_hostname }}.{{ domain }}`) && (PathPrefix(`/api`) || PathPrefix(`/dashboard`))"
-        service: api@internal
+        tls: {}
         entryPoints:
           - websecure
-        tls: {}
-    middlewares:
-      https-redirect:
-        redirectScheme:
-          scheme: https
-          permanent: true
   tls:
-    certificates:
-      - certFile: /etc/traefik/certs/kubernetes.pem
-        keyFile: /etc/traefik/certs/kubernetes-key.pem
+    stores:
+      default:
+        defaultCertificate:
+          certFile: /etc/traefik/certs/kubernetes.pem
+          keyFile: /etc/traefik/certs/kubernetes-key.pem
+

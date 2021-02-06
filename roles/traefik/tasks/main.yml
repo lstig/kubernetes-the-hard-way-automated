@@ -1,7 +1,7 @@
 ---
 - set_fact:
     internal_interface: "{{ private_address_cidr | network_in_network(lookup('vars', 'ansible_' + item).ipv4.address) | ternary(item, internal_interface | default('')) }}"
-  loop: "{{ ansible_interfaces }}"
+  loop: "{{ ansible_interfaces | select('match', '^en') | list }}" # we only care about ethernet interfaces
 
 - set_fact:
     routes: "{{ routes | default([]) | union([ {'to': kube_cluster_cidr | ipsubnet(24, item.split('-')[-1] | int), 'via': hostvars[item]['ansible_all_ipv4_addresses'] | reduce_on_network(private_address_cidr) |  first } ]) }}"

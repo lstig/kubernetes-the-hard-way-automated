@@ -17,8 +17,10 @@ rules:
       - watch
   - apiGroups:
       - extensions
+      - networking.k8s.io
     resources:
       - ingresses
+      - ingressclasses
     verbs:
       - get
       - list
@@ -36,7 +38,10 @@ rules:
       - ingressroutes
       - traefikservices
       - ingressroutetcps
+      - ingressrouteudps
       - tlsoptions
+      - tlsstores
+      - serverstransports
     verbs:
       - get
       - list

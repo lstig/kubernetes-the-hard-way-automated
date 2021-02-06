@@ -1,8 +1,9 @@
 ---
 - hosts: localhost
+  vars_files:
+  - settings.yaml
+  - group_vars/all.yaml
   tasks:
-  - include_vars:
-      file: group_vars/all.yaml
   - name: Generate kubeconfig for local admin access
     shell: |
       kubectl config set-cluster {{ k8s_cluster }} \
@@ -27,6 +28,8 @@
       chdir: "{{ local_dir }}"
 
 - hosts: controllers
+  vars_files:
+  - settings.yaml
   tasks:
     - name: Deploy CoreDNS
       k8s:
