@@ -3,7 +3,7 @@ Kubernetes the Hard Way (Automated)
 
 This project was a personal exercise to learn more about the internals of kubernetes. These ansible playbooks are derived from the steps in Keylsey Hightower's [Kubernetes the Hard Way](https://github.com/kelseyhightower/kubernetes-the-hard-way) tutorial.
 
-> THIS IS NOT INTENDED FOR PRODUCTION USE. I TAKE NO RESPONSIBILITY FOR THE MAYHEM CAUSED BY USING THIS IN A PRODUCTION ENVIRONMENT.
+> THIS IS NOT INTENDED FOR PRODUCTION USE.
 
 One of the hardest parts of setting up kubernetes from scratch is the sheer number of certificates and configurations required to _just_ get the cluster up and running. I'm using ansible in order to automate the more tedious aspects of bootstrapping kubernetes, and I've replaced VMs and loadbalancer on GCP with vagrant and traefik running locally.
 
@@ -16,7 +16,7 @@ These instructions have been tested on MacOS with `python3.6` but should work on
 * VirtualBox - https://www.virtualbox.org/
 * Ansible - https://www.ansible.com/
 * cfssl - https://cfssl.org/
-* kubectl (v1.17.3) - https://kubernetes.io/docs/tasks/tools/install-kubectl/
+* kubectl - https://kubernetes.io/docs/tasks/tools/install-kubectl/
 
 > See `requirements.txt` for required python libraries
 
@@ -30,6 +30,8 @@ What's deployed?
 |Kubernetes Dashboard|https://k8s.example.com|
 
 ![Cluster Diagram](img/diagram.png)
+
+> _the ipaddresses shown above may not match your environment_
 
 Setup
 ---
