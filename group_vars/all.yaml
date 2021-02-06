@@ -5,8 +5,8 @@ local_vars_dir: "{{ local_dir }}/vars"
 local_kubeconfigs_dir: "{{ local_dir }}/kubeconfigs"
 k8s_cluster: k8s-demo
 kube_cluster_cidr: 10.200.0.0/16
-public_address_cidr: "172.16.0.0/24"
-private_address_cidr: "10.240.0.0/24"
+public_address_cidr: "{{ mandatory }}"
+private_address_cidr: "{{ mandatory }}"
 domain: example.com
 k8s_hostnames:
   - kubernetes
