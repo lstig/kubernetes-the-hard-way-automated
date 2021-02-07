@@ -37,7 +37,7 @@ Vagrant.configure("2") do |config|
     vb.customize [ "modifyvm", :id, "--uartmode1", "file", "/dev/null" ]
   end
 
-  ANSIBLE_PLAYBOOK = "site.yml"
+  ANSIBLE_PLAYBOOK = "site.yaml"
   ANSIBLE_TAGS     = [ "download" ] # run all tasks related to downloading required artifacts
   ANSIBLE_GROUPS   = {
     "controllers"   => [ "controller-[1:#{C['controllers']}]" ],

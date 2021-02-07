@@ -29,20 +29,20 @@
     sysctl_set: yes
 
 - name: Configure static routes
-  include_tasks: networking.yml
+  include_tasks: networking.yaml
 
 - name: Configure containerd
-  include_tasks: containerd.yml
+  include_tasks: containerd.yaml
 
 - name: Configure cni
-  include_tasks: cni.yml
+  include_tasks: cni.yaml
 
 - name: Setup kubelet
-  include_tasks: kubelet.yml
+  include_tasks: kubelet.yaml
   tags:
     - download
 
 - name: Setup kube-proxy
-  include_tasks: kube_proxy.yml
+  include_tasks: kube_proxy.yaml
   tags:
     - download

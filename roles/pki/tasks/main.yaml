@@ -73,7 +73,7 @@
 ##
 
 - name: Generate CA cert and key
-  include_tasks: ca.yml
+  include_tasks: ca.yaml
   when: >
     ca | length <= 0 or
     'key' not in ca or
@@ -86,7 +86,7 @@
   when: ca_update
 
 - name: Generate client certificates and keys
-  include_tasks: client.yml
+  include_tasks: client.yaml
   vars:
     name: "{{ item.key }}"
     attributes: "{{ item.value['attributes'] | default({}) }}"
@@ -104,7 +104,7 @@
     dest: "{{ cert_files['clients'] }}"
 
 - name: Generate cert files
-  include_tasks: save_file.yml
+  include_tasks: save_file.yaml
   loop: "{{ client_certs | combine({ 'ca': ca }) | dict2items }}"
   loop_control:
     loop_var: cert
@@ -114,7 +114,7 @@
 ##
 
 - name: Generate worker node kubeconfigs
-  include_tasks: generate_kubeconfig.yml
+  include_tasks: generate_kubeconfig.yaml
   vars:
     client: "{{ item }}"
     user: "{{ clients | get_dict_value(item, 'attributes', 'cn') }}"
@@ -124,7 +124,7 @@
     - kubeconfig
 
 - name: Generate k8s component kubeconfigs
-  include_tasks: generate_kubeconfig.yml
+  include_tasks: generate_kubeconfig.yaml
   vars:
     client: "{{ item.key }}"
     user: "{{ item.value['user'] }}"
