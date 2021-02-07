@@ -21,8 +21,10 @@ traefik_static_conf:
   entryPoints:
     web:
       address: ":80"
-      proxyProtocol:
-        insecure: true
+      http:
+        redirections:
+          entryPoint:
+            to: websecure
     websecure:
       address: ":443"
       proxyProtocol:
