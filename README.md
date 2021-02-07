@@ -31,7 +31,7 @@ What's deployed?
 
 ![Cluster Diagram](img/diagram.png)
 
-> _the ipaddresses shown above may not match your environment_
+> _the ip addresses shown above may not match your environment_
 
 Setup
 ---
