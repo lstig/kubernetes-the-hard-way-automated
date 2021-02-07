@@ -25,9 +25,9 @@ What's deployed?
 
 |App|URL|
 |---|---|
-|Traefik Dashboard|https://lb.example.com/dashboard/|
-|whoami|https://lb.example.com/whoami|
-|Kubernetes Dashboard|https://k8s.example.com|
+|Traefik Dashboard|https://traefik.example.local|
+|whoami|https://apps.example.local/whoami|
+|Kubernetes Dashboard|https://apps.example.local/dashboard|
 
 ![Cluster Diagram](img/diagram.png)
 
@@ -50,7 +50,7 @@ cp settings.example.yaml settings.yaml
 # NOTE: made need to run twice if this is the first time
 vagrant up
 
-# Run playbooks to bootstrap the cluster and initial services
+# Run playbooks to bootstrap the cluster and deploy applications
 ansible-playbook site.yaml
 
 # create kubeconfig for accessing the kubernetes cluster from
@@ -59,19 +59,6 @@ ansible-playbook k8s.yaml
 
 # set KUBECONFIG environment so you don't have to pass kubeconfig flag to kubectl
 export KUBECONFIG=$(pwd)/local/admin.kubeconfig
-export NAMESPACE=kube-system
-
-# fetch service account token and update traefik configuration
-export TRAEFIK_TOKEN=$(kubectl -n ${NAMESPACE} describe secret $(kubectl -n ${NAMESPACE} get secret | (grep traefik-ingress-controller || echo "$_") | awk '{print $1}') | grep token: | awk '{print $2}')
-
-ansible-playbook site.yaml --tags traefik_static_config,traefik_dynamic_config -e traefik_k8s_token=${TRAEFIK_TOKEN}
-
-# deploy demo applications
-kubectl apply -f manifests/whoami.yaml
-kubectl apply -f manifests/dashboard.yaml
-
-# create IngressRoutes
-kubectl apply -f manifests/ingress_routes.yaml
 
 # get dashboard token
 kubectl -n kubernetes-dashboard describe secret $(kubectl -n kubernetes-dashboard get secret | (grep kubernetes-dashboard-token || echo "$_") | awk '{print $1}') | grep token: | awk '{print $2}'

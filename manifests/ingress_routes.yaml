@@ -1,3 +1,14 @@
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: stripprefix
+  namespace: kubernetes-dashboard
+spec:
+  stripPrefix:
+    prefixes:
+      - /dashboard
+
 apiVersion: traefik.containo.us/v1alpha1
 kind: IngressRoute
 metadata:
@@ -7,8 +18,11 @@ spec:
   entryPoints:
     - websecure
   routes:
-  - match: Host(`k8s.example.com`)
+  - match: "Host(`apps.{{ domain }}`) && PathPrefix(`/dashboard`)"
     kind: Rule
+    middlewares:
+    - name: stripprefix
+      namespace: kubernetes-dashboard
     services:
     - name: kubernetes-dashboard
       port: 80
@@ -20,13 +34,13 @@ spec:
 apiVersion: traefik.containo.us/v1alpha1
 kind: IngressRoute
 metadata:
-  name: ingressroutetls
+  name: whoami
   namespace: default
 spec:
   entryPoints:
     - websecure
   routes:
-  - match: Host(`lb.example.com`) && PathPrefix(`/whoami`)
+  - match: "Host(`apps.{{ domain }}`) && PathPrefix(`/whoami`)"
     kind: Rule
     services:
     - name: whoami

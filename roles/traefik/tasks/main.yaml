@@ -61,7 +61,7 @@
 
 - name: Create traefik configuration file
   copy:
-    content: "{{ traefik_static_conf | to_nice_yaml }}"
+    content: "{{ traefik_static_conf | to_nice_yaml(indent=2) }}"
     dest: "{{ traefik_conf_dir }}/traefik.yaml"
   notify:
     - restart traefik
@@ -79,7 +79,7 @@
 
 - name: Create traefik dynamic configuration file
   copy:
-    content: "{{ traefik_dynamic_conf | to_nice_yaml }}"
+    content: "{{ traefik_dynamic_conf | to_nice_yaml(indent=2) }}"
     dest: "{{ traefik_dynamic_conf_dir }}/dynamic.yaml"
   tags:
     - traefik_dynamic_config

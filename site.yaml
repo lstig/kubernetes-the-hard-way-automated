@@ -59,3 +59,113 @@
     - worker
   tags:
     - worker
+
+- hosts: localhost
+  vars_files:
+  - settings.yaml
+  tasks:
+  - name: Generate kubeconfig for local admin access
+    shell: |
+      kubectl config set-cluster {{ k8s_cluster }} \
+          --certificate-authority={{ local_certs_dir }}/ca.pem \
+          --embed-certs=true \
+          --server=https://{{ loadbalancer }}:6443 \
+          --kubeconfig=admin.kubeconfig
+
+      kubectl config set-credentials admin \
+          --client-certificate={{ local_certs_dir }}/admin.pem \
+          --client-key={{ local_certs_dir }}/admin-key.pem \
+          --embed-certs=true \
+          --kubeconfig=admin.kubeconfig
+
+      kubectl config set-context default \
+          --cluster={{ k8s_cluster }} \
+          --user=admin \
+          --kubeconfig=admin.kubeconfig
+
+      kubectl config use-context default --kubeconfig=admin.kubeconfig
+    args:
+      chdir: "{{ local_dir }}"
+
+- hosts: controllers
+  vars_files:
+  - settings.yaml
+  tags:
+  - cluster_services
+  tasks:
+    - block: # BEGIN BLOCK
+      - name: Deploy CoreDNS
+        k8s:
+          state: present
+          definition: "{{ lookup('template', playbook_dir + '/manifests/coredns.yaml') }}"
+
+      - name: Deploy traefik CRD
+        k8s:
+          state: present
+          definition: "{{ lookup('template', playbook_dir + '/manifests/traefik-crd.yaml') }}"
+
+      - name: Deploy traefik RBAC config
+        k8s:
+          state: present
+          definition: "{{ lookup('template', playbook_dir + '/manifests/traefik-rbac.yaml') }}"
+
+      - name: Create traefik-ingress-controller service account
+        k8s:
+          state: present
+          definition:
+            apiVersion: v1
+            kind: ServiceAccount
+            metadata:
+              name: traefik-ingress-controller
+              namespace: kube-system
+        register: result
+
+      - set_fact:
+          sa: "{{ lookup('k8s', kubeconfig='{}/admin.kubeconfig'.format(local_dir), namespace=result.result.metadata.namespace, kind='ServiceAccount', resource_name=result.result.metadata.name) }}"
+
+      - name: Get traefik-ingress-controller service account token
+        set_fact:
+          sa_token: "{{ lookup('k8s', kubeconfig='{}/admin.kubeconfig'.format(local_dir), namespace=sa.metadata.namespace, kind='Secret', resource_name=sa.secrets[0].name) }}"
+
+      - name: Save traefik-ingress-controller service account token to local settings file
+        lineinfile:
+          path: settings.yaml
+          regexp: '^traefik_k8s_token:'
+          line: "traefik_k8s_token: {{ sa_token.data.token | b64decode }}"
+        delegate_to: localhost
+      run_once: true # END BLOCK
+
+
+- name: Re-run traefik role to pick up the ingress controller token
+  hosts: loadbalancers
+  vars_files:
+  - settings.yaml
+  tags:
+  - cluster_services
+  become: yes
+  roles:
+    - traefik
+
+- hosts: controllers
+  vars_files:
+  - settings.yaml
+  tags:
+  - apps
+  - ingress
+  tasks:
+    - block: # BEGIN BLOCK
+      - name: Deploy Kubernetes dashboard
+        k8s:
+          state: present
+          definition: "{{ lookup('template', playbook_dir + '/manifests/dashboard.yaml') }}"
+
+      - name: Deploy whoami
+        k8s:
+          state: present
+          definition: "{{ lookup('template', playbook_dir + '/manifests/whoami.yaml') }}"
+
+      - name: Deploy ingress routes
+        k8s:
+          state: present
+          definition: "{{ lookup('template', playbook_dir + '/manifests/ingress_routes.yaml') }}"
+      run_once: true # END BLOCK

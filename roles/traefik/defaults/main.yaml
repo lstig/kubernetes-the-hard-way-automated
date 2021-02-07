@@ -61,7 +61,7 @@ traefik_dynamic_conf:
   http:
     routers:
       dashboard:
-        rule: Host(`{{ ansible_hostname }}.{{ domain }}`) && (PathPrefix(`/api`) || PathPrefix(`/dashboard`))
+        rule: Host(`{{ ansible_hostname }}.{{ domain }}`)
         service: api@internal
         tls: {}
         entryPoints:

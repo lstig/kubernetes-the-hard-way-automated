@@ -56,7 +56,7 @@ Vagrant.configure("2") do |config|
     this.vm.hostname = "traefik.#{C['domain']}"
     this.vm.network "private_network", ip: "#{$lb_internal_ip}", hostsupdater: "skip"
     this.vm.network "private_network", ip: "#{$lb_external_ip}"
-    this.hostsupdater.aliases = ["k8s.example.com"]
+    this.hostsupdater.aliases = ["apps.#{C['domain']}"]
 
     this.vm.provider "virtualbox" do |vb|
       vb.memory = C['memory']['loadbalancer']
