@@ -1,8 +1,8 @@
 ---
 - hosts: localhost
   vars_files:
-  - settings.yaml
   - group_vars/all.yaml
+  - settings.yaml
   tasks:
   - name: Generate kubeconfig for local admin access
     shell: |
