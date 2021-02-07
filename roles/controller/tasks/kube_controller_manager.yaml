@@ -1,10 +1,4 @@
 ---
-- name: Load kube-controller-manager variables
-  include_vars:
-    file: kube_controller_manager.yaml
-  tags:
-    - always
-
 - name: Pull kube-controller-manager container image
   podman_image:
     name: "{{ kube_controller_manager_image }}"

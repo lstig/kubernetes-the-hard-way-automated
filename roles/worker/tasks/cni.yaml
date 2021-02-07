@@ -1,7 +1,4 @@
 ---
-- include_vars:
-    file: cni.yaml
-
 - name: Create cni bridge configuration
   copy:
     content: "{{ cni_bridge_config | to_nice_json(indent=2) }}"

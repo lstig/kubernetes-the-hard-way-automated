@@ -1,9 +1,4 @@
 ---
-- include_vars:
-    file: kubelet.yaml
-  tags:
-    - always
-
 - name: Download kubelet binary
   get_url:
     url: "{{ kube_release_url }}/kubelet"

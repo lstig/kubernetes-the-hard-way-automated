@@ -1,10 +1,4 @@
 ---
-- name: Load kube-scheduler variables
-  include_vars:
-    file: kube_scheduler.yaml
-  tags:
-    - always
-
 - name: Pull kube-scheduler container image
   podman_image:
     name: "{{ kube_scheduler_image }}"

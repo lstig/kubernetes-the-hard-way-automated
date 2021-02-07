@@ -3,6 +3,7 @@ traefik_image: docker.io/library/traefik
 traefik_version: v2.4.2
 traefik_log_level: DEBUG
 traefik_k8s_apiservers: []
+traefik_k8s_token: ''
 traefik_log_dir: /var/log/traefik
 traefik_conf_dir: /etc/traefik
 traefik_cert_dir: "{{ traefik_conf_dir }}/certs"
@@ -40,7 +41,7 @@ traefik_static_conf:
     kubernetesCRD:
       endpoint: "https://{{ groups['controllers'] | first }}:6443" # TODO change to load balancer IP
       certAuthFilePath: "{{ traefik_cert_dir }}/ca.pem"
-      token: "{{ traefik_k8s_token | default('') }}"
+      token: "{{ traefik_k8s_token }}"
   api:
     dashboard: true
 traefik_dynamic_conf:

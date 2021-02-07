@@ -1,10 +1,4 @@
 ---
-- name: Load kube-apiserver variables
-  include_vars:
-    file: kube_apiserver.yaml
-  tags:
-    - always
-
 - name: Pull kube-apiserver container image
   podman_image:
     name: "{{ kube_apiserver_image }}"

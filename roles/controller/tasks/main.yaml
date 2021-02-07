@@ -1,4 +1,5 @@
 ---
+# TODO this should be in vault
 - name: Load local variables
   include_vars:
     file: "{{ local_vars_dir }}/controllers.yaml"
