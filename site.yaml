@@ -1,5 +1,6 @@
 ---
-- hosts: localhost
+- name: Setup PKI
+  hosts: localhost
   vars_files:
   - settings.yaml
   pre_tasks:
@@ -15,14 +16,16 @@
   tags:
     - init
 
-- hosts: all
+- name: Apply common configuration
+  hosts: all
   vars_files:
   - settings.yaml
   become: yes
   roles:
     - common
 
-- hosts: controllers
+- name: Bootstrap etcd
+  hosts: controllers
   vars_files:
   - settings.yaml
   become: yes
@@ -32,7 +35,8 @@
     - etcd
     - control
 
-- hosts: loadbalancers
+- name: Setup traefik loadbalancer
+  hosts: loadbalancers
   vars_files:
   - settings.yaml
   become: yes
@@ -42,7 +46,8 @@
     - proxy
     - loadbalancers
 
-- hosts: controllers
+- name: Bootstrap controller nodes
+  hosts: controllers
   vars_files:
   - settings.yaml
   become: yes
@@ -51,7 +56,8 @@
   tags:
     - controller
 
-- hosts: workers
+- name: Bootstrap worker nodes
+  hosts: workers
   vars_files:
   - settings.yaml
   become: yes
@@ -60,7 +66,8 @@
   tags:
     - worker
 
-- hosts: localhost
+- name: Generate admin kubeconfig
+  hosts: localhost
   vars_files:
   - settings.yaml
   tasks:
@@ -87,7 +94,8 @@
     args:
       chdir: "{{ local_dir }}"
 
-- hosts: controllers
+- name: Deploy cluster services and custom resource definitions
+  hosts: controllers
   vars_files:
   - settings.yaml
   tags:
@@ -138,15 +146,18 @@
 
 - name: Re-run traefik role to pick up the ingress controller token
   hosts: loadbalancers
-  vars_files:
-  - settings.yaml
+  pre_tasks:
+  # this makes sure we have the latest changes to settings.yaml
+  - include_vars:
+      file: settings.yaml
   tags:
   - cluster_services
   become: yes
   roles:
     - traefik
 
-- hosts: controllers
+- name: Deploy cluster applications
+  hosts: controllers
   vars_files:
   - settings.yaml
   tags:

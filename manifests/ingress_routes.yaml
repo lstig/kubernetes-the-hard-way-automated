@@ -8,7 +8,9 @@ spec:
   stripPrefix:
     prefixes:
       - /dashboard
+    forceSlash: false
 
+---
 apiVersion: traefik.containo.us/v1alpha1
 kind: IngressRoute
 metadata:

@@ -27,7 +27,7 @@ What's deployed?
 |---|---|
 |Traefik Dashboard|https://traefik.example.local|
 |whoami|https://apps.example.local/whoami|
-|Kubernetes Dashboard|https://apps.example.local/dashboard|
+|Kubernetes Dashboard|https://apps.example.local/dashboard/ _(the trailing slash is required)_|
 
 ![Cluster Diagram](img/diagram.png)
 

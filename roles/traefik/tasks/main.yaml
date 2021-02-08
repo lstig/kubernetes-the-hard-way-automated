@@ -71,7 +71,7 @@
 
 - name: Generate list of k8s api servers
   set_fact:
-    traefik_k8s_apiservers: "{{ traefik_k8s_apiservers + [ {'address': '{}:6443'.format(item) } ] }}"
+    traefik_k8s_apiservers: "{{ (traefik_k8s_apiservers + [ {'address': '{}:6443'.format(item) } ]) | unique }}"
   loop: "{{ groups['controllers'] }}"
   tags:
     - traefik_dynamic_config
