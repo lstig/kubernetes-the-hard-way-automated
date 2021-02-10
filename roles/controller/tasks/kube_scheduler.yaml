@@ -1,6 +1,6 @@
 ---
 - name: Pull kube-scheduler container image
-  podman_image:
+  containers.podman.podman_image:
     name: "{{ kube_scheduler_image }}"
     tag: "{{ kube_scheduler_version }}"
   tags:
@@ -8,13 +8,13 @@
     - download
 
 - name: Copy kube-scheduler kubeconfig to {{ kube_lib_dir }}
-  copy:
+  ansible.builtin.copy:
     src: "{{ local_kubeconfigs_dir }}/kube-scheduler.kubeconfig"
     dest: "{{ kube_lib_dir }}/kube-scheduler.kubeconfig"
     mode: 0640
 
 - name: Copy kube-scheduler certs to {{ kube_lib_dir }}
-  copy:
+  ansible.builtin.copy:
     src: "{{ local_certs_dir }}/{{ item }}"
     dest: "{{ kube_lib_dir }}"
     mode: 0640
@@ -23,18 +23,18 @@
     - kube-scheduler-key.pem
 
 - name: Create KubeSchedulerConfiguration
-  copy:
+  ansible.builtin.copy:
     dest: "{{ kube_scheduler_config_file }}"
     content: "{{ kube_scheduler_config_content | to_nice_yaml(indent=2) }}"
     mode: 0640
 
 - name: Create kube-scheduler service file
-  template:
+  ansible.builtin.template:
     src: kube-scheduler.service.j2
     dest: /etc/systemd/system/kube-scheduler.service
 
 - name: Enable and start kube-scheduler
-  systemd:
+  ansible.builtin.service:
     name: kube-scheduler
     state: started
     enabled: yes

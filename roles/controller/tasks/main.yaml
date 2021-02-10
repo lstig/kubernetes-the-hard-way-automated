@@ -1,12 +1,12 @@
 ---
 # TODO this should be in vault
 - name: Load local variables
-  include_vars:
+  ansible.builtin.include_vars:
     file: "{{ local_vars_dir }}/controllers.yaml"
     name: kube
 
 - name: Copy certs to {{ kube_lib_dir }}
-  copy:
+  ansible.builtin.copy:
     src: "{{ local_certs_dir }}/{{ item }}"
     dest: "{{ kube_lib_dir }}"
     mode: 0640
@@ -21,7 +21,7 @@
     - service-account.pem
 
 - name: Create encrpytion-config.yaml
-  copy:
+  ansible.builtin.copy:
     dest: "{{ kube_encryption_config_file }}"
     content: "{{ kube_encryption_config | to_nice_yaml(indent=2) }}"
     mode: 0640
@@ -29,25 +29,25 @@
     encryption_key: "{{ kube['encryption_key'] }}"
 
 - name: Setup kube-apiserver
-  include_tasks: kube_apiserver.yaml
+  ansible.builtin.include_tasks: kube_apiserver.yaml
   tags:
     - kube_apiserver
     - download
 
 - name: Setup kube-controller-manager
-  include_tasks: kube_controller_manager.yaml
+  ansible.builtin.include_tasks: kube_controller_manager.yaml
   tags:
     - kube_controller_manager
     - download
 
 - name: Setup kube-scheduler
-  include_tasks: kube_scheduler.yaml
+  ansible.builtin.include_tasks: kube_scheduler.yaml
   tags:
     - kube_scheduler
     - download
 
 - name: Create ClusterRole to allow kubelet api access from apiserver
-  k8s:
+  community.kubernetes.k8s:
     state: present
     kubeconfig: ~/.kube/config
     definition:
@@ -74,7 +74,7 @@
   run_once: true
 
 - name: Bind newly created role to kubernetes user
-  k8s:
+  community.kubernetes.k8s:
     state: present
     kubeconfig: ~/.kube/config
     definition:
