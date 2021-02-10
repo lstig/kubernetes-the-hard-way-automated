@@ -1,13 +1,13 @@
 ---
-- set_fact:
+- ansible.builtin.set_fact:
     internal_interface: "{{ private_address_cidr | network_in_network(lookup('vars', 'ansible_' + item).ipv4.address) | ternary(item, internal_interface | default('')) }}"
   loop: "{{ ansible_interfaces | select('match', '^en') | list }}" # we only care about ethernet interfaces
 
-- set_fact:
+- ansible.builtin.set_fact:
     routes: "{{ routes | default([]) | union([ {'to': kube_cluster_cidr | ipsubnet(24, item.split('-')[-1] | int), 'via': hostvars[item]['ansible_all_ipv4_addresses'] | reduce_on_network(private_address_cidr) |  first } ]) }}"
   loop: "{{ groups['workers'] }}"
 
-- set_fact:
+- ansible.builtin.set_fact:
     netplan:
       network:
         version: 2
@@ -15,7 +15,7 @@
         ethernets: "{{ { internal_interface: { 'routes': routes } } }}"
 
 - name: Create static routes for pod networking
-  copy:
+  ansible.builtin.copy:
     content: "{{ netplan | to_nice_yaml(indent=2) }}"
     dest: /etc/netplan/50-pod-network.yaml
     owner: root
@@ -28,7 +28,7 @@
   meta: flush_handlers
 
 - name: Pull traefik container image
-  podman_image:
+  containers.podman.podman_image:
     name: "{{ traefik_image }}"
     tag: "{{ traefik_version }}"
   tags:
@@ -36,7 +36,7 @@
     - download
 
 - name: Ensure traefik host directories exist
-  file:
+  ansible.builtin.file:
     path: "{{ item }}"
     state: directory
     mode: 0750
@@ -49,7 +49,7 @@
     - configuration
 
 - name: Copy tls certs to host
-  copy:
+  ansible.builtin.copy:
     src: "{{ item }}"
     dest: "{{ traefik_cert_dir }}"
   loop:
@@ -60,7 +60,7 @@
     - pki
 
 - name: Create traefik configuration file
-  copy:
+  ansible.builtin.copy:
     content: "{{ traefik_static_conf | to_nice_yaml(indent=2) }}"
     dest: "{{ traefik_conf_dir }}/traefik.yaml"
   notify:
@@ -70,7 +70,7 @@
     - configuration
 
 - name: Generate list of k8s api servers
-  set_fact:
+  ansible.builtin.set_fact:
     traefik_k8s_apiservers: "{{ (traefik_k8s_apiservers + [ {'address': '{}:6443'.format(item) } ]) | unique }}"
   loop: "{{ groups['controllers'] }}"
   tags:
@@ -78,7 +78,7 @@
     - configuration
 
 - name: Create traefik dynamic configuration file
-  copy:
+  ansible.builtin.copy:
     content: "{{ traefik_dynamic_conf | to_nice_yaml(indent=2) }}"
     dest: "{{ traefik_dynamic_conf_dir }}/dynamic.yaml"
   tags:
@@ -86,14 +86,14 @@
     - configuration
 
 - name: Create traefik service file
-  template:
+  ansible.builtin.template:
     src: traefik.service.j2
     dest: /etc/systemd/system/traefik.service
   notify:
     - update traefik service
 
 - name: Enable and start traefik
-  systemd:
+  ansible.builtin.service:
     name: traefik
     state: started
     enabled: yes
