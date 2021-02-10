@@ -1,6 +1,6 @@
 ---
 - name: Install required packages
-  apt:
+  ansible.builtin.apt:
     name: "{{ item }}"
     state: latest
   loop:
@@ -13,7 +13,7 @@
     - download
 
 - name: Copy certs to {{ kube_lib_dir }}
-  copy:
+  ansible.builtin.copy:
     src: "{{ local_certs_dir }}/{{ item }}"
     dest: "{{ kube_lib_dir }}"
     mode: 0640
@@ -23,26 +23,26 @@
     - "{{ ansible_hostname }}-key.pem"
 
 - name: Disable swap
-  sysctl:
+  ansible.posix.sysctl:
     name: vm.swappiness
     value: '0'
     sysctl_set: yes
 
 - name: Configure static routes
-  include_tasks: networking.yaml
+  ansible.builtin.include_tasks: networking.yaml
 
 - name: Configure containerd
-  include_tasks: containerd.yaml
+  ansible.builtin.include_tasks: containerd.yaml
 
 - name: Configure cni
-  include_tasks: cni.yaml
+  ansible.builtin.include_tasks: cni.yaml
 
 - name: Setup kubelet
-  include_tasks: kubelet.yaml
+  ansible.builtin.include_tasks: kubelet.yaml
   tags:
     - download
 
 - name: Setup kube-proxy
-  include_tasks: kube_proxy.yaml
+  ansible.builtin.include_tasks: kube_proxy.yaml
   tags:
     - download

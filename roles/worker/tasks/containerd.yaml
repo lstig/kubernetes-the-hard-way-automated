@@ -1,17 +1,17 @@
 ---
 - name: Create container config directory
-  file:
+  ansible.builtin.file:
     path: /etc/containerd
     state: directory
     mode: 0750
 
 - name: Create containerd config
-  copy:
+  ansible.builtin.copy:
     content: "{{ containerd_config }}"
     dest: /etc/containerd/config.toml
 
 - name: Start and enable containerd service
-  systemd:
+  ansible.builtin.service:
     name: containerd
     state: started
     enabled: yes

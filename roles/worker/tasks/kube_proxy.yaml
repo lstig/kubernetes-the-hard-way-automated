@@ -1,6 +1,6 @@
 ---
 - name: Pull kube-proxy container image
-  podman_image:
+  containers.podman.podman_image:
     name: "{{ kube_proxy_image }}"
     tag: "{{ kube_proxy_version }}"
   tags:
@@ -8,13 +8,13 @@
     - download
 
 - name: Create kube-proxy lib dir {{ kube_proxy_lib_dir }}
-  file:
+  ansible.builtin.file:
     path: "{{ kube_proxy_lib_dir }}"
     state: directory
     mode: 0750
 
 - name: Copy certs to {{ kube_proxy_lib_dir }}
-  copy:
+  ansible.builtin.copy:
     src: "{{ local_certs_dir }}/{{ item }}"
     dest: "{{ kube_proxy_lib_dir }}"
     mode: 0640
@@ -23,23 +23,23 @@
     - "kube-proxy-key.pem"
 
 - name: Copy kube-proxy kubeconfig
-  copy:
+  ansible.builtin.copy:
     src: "{{ local_kubeconfigs_dir }}/kube-proxy.kubeconfig"
     dest: "{{ kube_proxy_lib_dir }}/kubeconfig"
 
 - name: Create KubeProxyConfiguration
-  copy:
+  ansible.builtin.copy:
     dest: "{{ kube_proxy_config_file }}"
     content: "{{ kube_proxy_config | to_nice_yaml(indent=2) }}"
     mode: 0640
 
 - name: Create kube-proxy service file
-  template:
+  ansible.builtin.template:
     src: kube-proxy.service.j2
     dest: /etc/systemd/system/kube-proxy.service
 
 - name: Enable and start kube-proxy
-  systemd:
+  ansible.builtin.service:
     name: kube-proxy
     state: started
     enabled: yes

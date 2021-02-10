@@ -1,6 +1,6 @@
 ---
 - name: Download kubelet binary
-  get_url:
+  ansible.builtin.get_url:
     url: "{{ kube_release_url }}/kubelet"
     dest: /usr/local/bin/kubelet
     mode: 0755
@@ -9,7 +9,7 @@
     - download
 
 - name: Create kubeconfig and kubelet lib directory
-  file:
+  ansible.builtin.file:
     path: "{{ item }}"
     state: directory
     mode: 0750
@@ -19,7 +19,7 @@
     - "{{ kubelet_lib_dir }}"
 
 - name: Copy certs to {{ kubelet_lib_dir }}
-  copy:
+  ansible.builtin.copy:
     src: "{{ local_certs_dir }}/{{ item }}"
     dest: "{{ kubelet_lib_dir }}"
     mode: 0640
@@ -28,22 +28,22 @@
     - "{{ ansible_hostname }}-key.pem"
 
 - name: Create kubelet configuration
-  copy:
+  ansible.builtin.copy:
     content: "{{ kubelet_config | to_nice_yaml(indent=2) }}"
     dest: "{{ kubelet_config_file }}"
 
 - name: Copy {{ ansible_hostname }}'s kubeconfig
-  copy:
+  ansible.builtin.copy:
     src: "{{ local_kubeconfigs_dir }}/{{ ansible_hostname }}.kubeconfig"
     dest: "{{ kubelet_lib_dir }}/kubeconfig"
 
 - name: Create kubelet service file
-  template:
+  ansible.builtin.template:
     src: kubelet.service.j2
     dest: /etc/systemd/system/kubelet.service
 
 - name: Enable and start kubelet
-  systemd:
+  ansible.builtin.service:
     name: kubelet
     state: started
     enabled: yes
