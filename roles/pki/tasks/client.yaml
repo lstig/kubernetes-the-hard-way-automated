@@ -1,12 +1,12 @@
 ---
 - name: ({{ name }}) setting hostname cfssl flag
-  set_fact:
+  ansible.builtin.set_fact:
     hostname_flag: "-hostname={{ hostnames | join(',') }}"
   when: hostnames != False
   no_log: true
 
 - name: ({{ name }}) Generate client certificates
-  command:
+  ansible.builtin.command:
     cmd: >
       cfssl gencert
       -ca="env:CA_CERT" -ca-key="env:CA_KEY"
@@ -20,12 +20,12 @@
   no_log: true
 
 - name: ({{ name }}) Setting 'client' fact
-  set_fact:
+  ansible.builtin.set_fact:
     client: "{{ certs.stdout | from_json }}"
   no_log: true
 
 - name: ({{ name }}) Encrypt client key
-  command:
+  ansible.builtin.command:
     cmd: "ansible-vault encrypt_string --stdin-name 'key'"
     stdin: "{{ client.key }}"
   register: encrypt_string
@@ -33,13 +33,13 @@
   no_log: true
 
 - name: ({{ name }}) Setting 'encrypted_key' fact
-  set_fact:
+  ansible.builtin.set_fact:
     encrypted_key: "{{ encrypt_string.stdout | trim_encrypt_string }}"
   when: encrypt_client_key
   no_log: true
 
 - name: ({{ name }}) Add client to 'client_certs'
-  set_fact:
+  ansible.builtin.set_fact:
     client_certs: >
       {{
         client_certs |
