@@ -1,7 +1,7 @@
 ---
 
 - name: Create kubernetes directories
-  file:
+  ansible.builtin.file:
     path: "{{ item }}"
     state: directory
     mode: 0750
@@ -14,7 +14,7 @@
 # move this to a handler or make conditional based on
 # output of: kubectl version --client  --short -o json
 - name: Download kubectl binary
-  get_url:
+  ansible.builtin.get_url:
     url: "{{ kube_release_url }}/kubectl"
     dest: /usr/local/bin/kubectl
     mode: 0755
@@ -23,7 +23,7 @@
     - download
 
 - name: Setup bash completion and aliases
-  copy:
+  ansible.builtin.copy:
     content: |
       source <(kubectl completion bash)
       alias k=kubectl
@@ -34,7 +34,7 @@
     group: root
 
 - name: Create /home/{{ ansible_ssh_user }}/.kube directory
-  file:
+  ansible.builtin.file:
     path: "/home/{{ ansible_ssh_user }}/.kube"
     state: directory
     mode: 0750
@@ -42,7 +42,7 @@
     group: "{{ ansible_ssh_user }}"
 
 - name: Copy admin kubeconfig to /home/{{ ansible_ssh_user }}/.kube/config
-  copy:
+  ansible.builtin.copy:
     src: "{{ local_kubeconfigs_dir }}/admin.kubeconfig"
     dest: "/home/{{ ansible_ssh_user }}/.kube/config"
     mode: 0600
