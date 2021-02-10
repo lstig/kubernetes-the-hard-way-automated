@@ -1,6 +1,6 @@
 ---
 - name: Set /etc/hosts entries for cluster
-  template:
+  ansible.builtin.template:
     src: etc/hosts.j2
     dest: /etc/hosts
     owner: root
@@ -10,7 +10,7 @@
     - configuration
 
 - name: Add apt-key for OpenSUSE repo
-  apt_key:
+  ansible.builtin.apt_key:
     url: https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable/xUbuntu_{{ ansible_distribution_version }}/Release.key
     state: present
   tags:
@@ -18,7 +18,7 @@
     - download
 
 - name: Add podman repo
-  apt_repository:
+  ansible.builtin.apt_repository:
     repo: deb http://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_{{ ansible_distribution_version }}/ /
     filename: devel:kubic:libcontainers:stable.list
   tags:
@@ -26,7 +26,7 @@
     - download
 
 - name: Upgrade all packages to the latest version
-  apt:
+  ansible.builtin.apt:
     name: "*"
     state: latest
   tags:
@@ -34,7 +34,7 @@
     - download
 
 - name: Install podman and pip3
-  apt:
+  ansible.builtin.apt:
     name: "{{ item }}"
     state: latest
   loop:
