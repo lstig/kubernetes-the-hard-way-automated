@@ -72,7 +72,7 @@
   - settings.yaml
   tasks:
   - name: Generate kubeconfig for local admin access
-    shell: |
+    ansible.builtin.shell: |
       kubectl config set-cluster {{ k8s_cluster }} \
           --certificate-authority={{ local_certs_dir }}/ca.pem \
           --embed-certs=true \
@@ -103,22 +103,22 @@
   tasks:
     - block: # BEGIN BLOCK
       - name: Deploy CoreDNS
-        k8s:
+        community.kubernetes.k8s:
           state: present
           definition: "{{ lookup('template', playbook_dir + '/manifests/coredns.yaml') }}"
 
       - name: Deploy traefik CRD
-        k8s:
+        community.kubernetes.k8s:
           state: present
           definition: "{{ lookup('template', playbook_dir + '/manifests/traefik-crd.yaml') }}"
 
       - name: Deploy traefik RBAC config
-        k8s:
+        community.kubernetes.k8s:
           state: present
           definition: "{{ lookup('template', playbook_dir + '/manifests/traefik-rbac.yaml') }}"
 
       - name: Create traefik-ingress-controller service account
-        k8s:
+        community.kubernetes.k8s:
           state: present
           definition:
             apiVersion: v1
@@ -128,15 +128,15 @@
               namespace: kube-system
         register: result
 
-      - set_fact:
+      - ansible.builtin.set_fact:
           sa: "{{ lookup('k8s', kubeconfig='{}/admin.kubeconfig'.format(local_dir), namespace=result.result.metadata.namespace, kind='ServiceAccount', resource_name=result.result.metadata.name) }}"
 
       - name: Get traefik-ingress-controller service account token
-        set_fact:
+        ansible.builtin.set_fact:
           sa_token: "{{ lookup('k8s', kubeconfig='{}/admin.kubeconfig'.format(local_dir), namespace=sa.metadata.namespace, kind='Secret', resource_name=sa.secrets[0].name) }}"
 
       - name: Save traefik-ingress-controller service account token to local settings file
-        lineinfile:
+        ansible.builtin.lineinfile:
           path: settings.yaml
           regexp: '^traefik_k8s_token:'
           line: "traefik_k8s_token: {{ sa_token.data.token | b64decode }}"
@@ -148,7 +148,7 @@
   hosts: loadbalancers
   pre_tasks:
   # this makes sure we have the latest changes to settings.yaml
-  - include_vars:
+  - ansible.builtin.include_vars:
       file: settings.yaml
   tags:
   - cluster_services
@@ -166,17 +166,17 @@
   tasks:
     - block: # BEGIN BLOCK
       - name: Deploy Kubernetes dashboard
-        k8s:
+        community.kubernetes.k8s:
           state: present
           definition: "{{ lookup('template', playbook_dir + '/manifests/dashboard.yaml') }}"
 
       - name: Deploy whoami
-        k8s:
+        community.kubernetes.k8s:
           state: present
           definition: "{{ lookup('template', playbook_dir + '/manifests/whoami.yaml') }}"
 
       - name: Deploy ingress routes
-        k8s:
+        community.kubernetes.k8s:
           state: present
           definition: "{{ lookup('template', playbook_dir + '/manifests/ingress_routes.yaml') }}"
       run_once: true # END BLOCK
