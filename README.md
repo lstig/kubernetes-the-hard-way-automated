@@ -42,6 +42,7 @@ Vagrant requires the `vagrant-hostupdater` plugin to automatically manage entrie
 # Install requirements (virtualenv recommended)
 pip install --upgrade pip
 pip install -r requirements.txt
+ansible-galaxy install -r requirements.yaml
 
 # Copy the example settings file and adjust to your needs
 cp settings.example.yaml settings.yaml

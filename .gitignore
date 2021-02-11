@@ -5,6 +5,7 @@
 local/*
 !local/.gitkeep
 settings.yaml
+.ansible/
 
 # Vagrant stuff
 acceptance_config.yml

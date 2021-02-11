@@ -1,0 +1,8 @@
+---
+collections:
+  # At this time the latest version of community.kubernetes (1.1.1) has
+  # a bug with the 'kubeconfig' parameter that is corrected by the following PR:
+  #   https://github.com/ansible-collections/community.kubernetes/pull/320
+  # Bump this dependency once a new version become available.
+  - name: community.kubernetes
+    version: 1.0.0
